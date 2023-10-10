@@ -4,17 +4,14 @@
 <head>
   <meta charset="UTF-8">
   <title>Static</title>
-  <link rel="stylesheet" href="css/style.css">
+  <script src="/components/page-router.js" type="module"></script>
 </head>
 
 <body>
-  <h1>HP</h1>
-  <p></p>
-  <script>
-    fetch('/api/hello-world').then(res => res.text()).then(text => {
-      document.querySelector('p').textContent = text;
-    })
-  </script>
+  <page-router></page-router>
+  <noscript>
+    This application requires JavaScript to be enabled.
+  </noscript>
 </body>
 
 </html>

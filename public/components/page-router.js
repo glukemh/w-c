@@ -1,16 +1,18 @@
-export default class PageRouter extends HTMLElement {
+import lightMixin from "/assets/light-mixin.js";
+
+export default class PageRouter extends lightMixin() {
 	static pushState(...args) {
 		history.pushState(...args);
 		window.dispatchEvent(new PopStateEvent("pushstate"));
 	}
 
-	static componentPathFromPathname(pathname) {
-		if (pathname === "/") return "/components/pages/home-page.js";
-		return `/components/pages${pathname}.js`;
+	static componentRoute(pathname) {
+		pathname += pathname.endsWith("/") ? "index.js" : ".js";
+		return "/components/routes" + pathname;
 	}
 
-	static get pageComponentPath() {
-		return this.componentPathFromPathname(location.pathname);
+	static get currentComponentRoute() {
+		return this.componentRoute(location.pathname);
 	}
 
 	constructor() {
@@ -25,12 +27,9 @@ export default class PageRouter extends HTMLElement {
 
 	async handlePageChange() {
 		const { default: constructor } = await import(
-			this.constructor.pageComponentPath
+			this.constructor.currentComponentRoute
 		);
-		console.debug("PageRouter", constructor);
-		this.replaceChildren(
-			document.createElement(customElements.getName(constructor))
-		);
+		this.connect(document.createElement(customElements.getName(constructor)));
 	}
 }
 

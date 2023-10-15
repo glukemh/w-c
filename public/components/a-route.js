@@ -1,11 +1,12 @@
+import { el } from "/assets/node-utils.js";
 import PageRouter from "/components/page-router.js";
 
-export default class aRoute extends HTMLElement {
+export default class ARoute extends HTMLElement {
 	static get observedAttributes() {
 		return ["href"];
 	}
 
-	a = null;
+	a = el("a");
 
 	get href() {
 		return this.getAttribute("href");
@@ -15,18 +16,16 @@ export default class aRoute extends HTMLElement {
 		this.setAttribute("href", value);
 	}
 
-	get componentPath() {
+	get componentRoute() {
 		if (!this.a?.pathname) return null;
-		return PageRouter.componentPathFromPathname(this.a.pathname);
+		return PageRouter.componentRoute(this.a.pathname);
 	}
 
 	constructor() {
 		super();
-		this.attachShadow({ mode: "open" });
-		this.a = document.createElement("a");
-		this.a.append(document.createElement("slot"));
+		this.a.append(el("slot"));
 		this.a.addEventListener("click", (e) => this.handleNavigation(e));
-		this.shadowRoot.append(this.a);
+		this.attachShadow({ mode: "open" }).append(this.a);
 	}
 
 	connectedCallback() {
@@ -49,13 +48,13 @@ export default class aRoute extends HTMLElement {
 
 	async handleHrefChange() {
 		this.a.href = this.href;
-		if (!this.componentPath) return;
+		if (!this.componentRoute) return;
 		try {
-			await import(this.componentPath);
+			await import(this.componentRoute);
 		} catch (error) {
-			console.error("Error pre importing page component", this.componentPath);
+			console.error("Error pre importing page component", this.componentRoute);
 		}
 	}
 }
 
-customElements.define("a-route", aRoute);
+customElements.define("a-route", ARoute);

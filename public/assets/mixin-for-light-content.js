@@ -6,8 +6,8 @@ export default async function mixinForLightContent(handle) {
 	const mixin = await mixinForMixins([lightMixin, mixinForContent(handle)]);
 	return (Base = HTMLElement) =>
 		class LightContentMixin extends mixin(Base) {
-			connectedCallback() {
-				super.connectedCallback?.();
+			constructor() {
+				super();
 				this.connect(this.constructor.content);
 			}
 		};

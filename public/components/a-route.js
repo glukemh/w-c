@@ -1,12 +1,13 @@
-import { el } from "/assets/node-utils.js";
+import mixinForShadowContent from "/assets/mixin-for-shadow-content.js";
 import PageRouter from "/components/page-router.js";
 
-export default class ARoute extends HTMLElement {
+const mixin = await mixinForShadowContent("a-route");
+export default class ARoute extends mixin() {
 	static get observedAttributes() {
 		return ["href"];
 	}
 
-	a = el("a");
+	a = this.shadowRoot.querySelector("a");
 
 	get href() {
 		return this.getAttribute("href");
@@ -17,15 +18,8 @@ export default class ARoute extends HTMLElement {
 	}
 
 	get componentRoute() {
-		if (!this.a?.pathname) return null;
+		if (!this.a.pathname) return null;
 		return PageRouter.componentRoute(this.a.pathname);
-	}
-
-	constructor() {
-		super();
-		this.a.append(el("slot"));
-		this.a.addEventListener("click", (e) => this.handleNavigation(e));
-		this.attachShadow({ mode: "open" }).append(this.a);
 	}
 
 	connectedCallback() {

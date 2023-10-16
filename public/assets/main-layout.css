@@ -1,0 +1,23 @@
+:host {
+	display: grid;
+	grid-template-areas: "header main aside";
+	grid-template-columns: minmax(min-content, 30ch) 1fr minmax(min-content, 30ch);
+	align-items: start;
+	min-height: 100%;
+}
+
+header {
+	grid-area: header;
+	position: sticky;
+	top: 0;
+}
+
+main {
+	grid-area: main;
+}
+
+aside {
+	grid-area: aside;
+	position: sticky;
+	top: 0;
+}

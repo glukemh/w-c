@@ -1,0 +1,72 @@
+:root {
+	height: 100%;
+
+	--color-accent-color: oklch(70% 20 120);
+	--color-accent-color-text: oklch(90% 10 0);
+	--color-active-text: oklch(70% 20 120);
+	--color-button-border: oklch(70% 20 120);
+	--color-button-face: oklch(90% 10 0);
+	--color-button-text: oklch(70% 20 120);
+	--color-canvas: oklch(0% 0 10);
+	--color-canvas-text: oklch(0.95 0.01 104);
+	--color-field: oklch(70% 0 120);
+	--color-field-text: oklch(100% 0 120);
+	--color-gray-text: oklch(50% 0 60);
+	--color-highlight: oklch(70% 0 120);
+	--color-highlight-text: oklch(100% 0 120);
+	--color-link-text: oklch(70% 20 120);
+	--color-mark: oklch(70% 20 120);
+	--color-mark-text: oklch(90% 10 0);
+	--color-visited-text: oklch(70% 20 120);
+}
+
+body {
+	height: 100%;
+	margin: 0;
+	background-color: var(--color-canvas);
+	color: var(--color-canvas-text);
+}
+
+@media (prefers-color-schema: light) {
+	:root {
+		--color-accent-color: oklch(70% 20 120);
+		--color-accent-color-text: oklch(90% 10 0);
+		--color-active-text: oklch(70% 20 120);
+		--color-button-border: oklch(70% 20 120);
+		--color-button-face: oklch(90% 10 0);
+		--color-button-text: oklch(70% 20 120);
+		--color-canvas: oklch(100% 0 120);
+		--color-canvas-text: oklch(0% 0 0);
+		--color-field: oklch(70% 0 120);
+		--color-field-text: oklch(0% 0 0);
+		--color-gray-text: oklch(50% 0 60);
+		--color-highlight: oklch(70% 0 120);
+		--color-highlight-text: oklch(0% 0 0);
+		--color-link-text: oklch(70% 20 120);
+		--color-mark: oklch(70% 20 120);
+		--color-mark-text: oklch(90% 10 0);
+		--color-visited-text: oklch(70% 20 120);
+	}
+}
+
+@media (forced-colors: active) {
+	:root {
+		--color-accent-color: accentcolor;
+		--color-accent-color-text: accentcolortext;
+		--color-active-text: activetext;
+		--color-button-border: buttonborder;
+		--color-button-face: buttonface;
+		--color-button-text: buttontext;
+		--color-canvas: canvas;
+		--color-canvas-text: canvastext;
+		--color-field: field;
+		--color-field-text: fieldtext;
+		--color-gray-text: graytext;
+		--color-highlight: highlight;
+		--color-highlight-text: highlighttext;
+		--color-link-text: linktext;
+		--color-mark: mark;
+		--color-mark-text: marktext;
+		--color-visited-text: visitedtext;
+	}
+}

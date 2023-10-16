@@ -1,12 +1,12 @@
 export default function shadowMixin(Base = HTMLElement) {
 	return class ShadowMixin extends Base {
-		shadow = this.attachShadow({ mode: "open" });
 		constructor() {
 			super();
+			this.attachShadow({ mode: "open" });
 		}
 
 		connect(content) {
-			this.shadow.replaceChildren(content);
+			this.shadowRoot.replaceChildren(content);
 		}
 	};
 }

@@ -1,4 +1,5 @@
 import { df } from "./node-utils.js";
+
 export default async function fetchContent(handle) {
 	const res = await fetch(`/assets/${handle}.html`);
 	if (!res.ok)

@@ -22,6 +22,11 @@ export default class ARoute extends mixin() {
 		return PageRouter.componentRoute(this.a.pathname);
 	}
 
+	constructor() {
+		super();
+		this.a.addEventListener("click", (e) => this.handleNavigation(e));
+	}
+
 	connectedCallback() {
 		this.handleHrefChange();
 	}

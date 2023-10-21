@@ -1,5 +1,19 @@
 # A Cloudflare Pages Project
 
-1. Install Wrangler by running `npm install -g @cloudflare/wrangler`.
+A static site hosted on Cloudflare Pages.
 
-2. Run the command `wrangler pages dev public` to start the development server.
+## Development
+
+Use Wrangler CLI to develop locally.
+
+```bash
+npx wrangler pages dev public
+```
+
+## Deploy
+
+Cloudflare Pages deployment is synced with the `main` branch.
+
+```bash
+git push origin main
+```

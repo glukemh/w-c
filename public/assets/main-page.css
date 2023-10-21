@@ -1,8 +1,8 @@
 :host {
 	--_mix-color: color-mix(
-		in oklch decreasing hue,
+		in oklab,
 		var(--color-canvas),
-		var(--color-accent-color) 3%
+		var(--color-accent-color) 30%
 	);
 	display: block;
 	min-height: 100%;

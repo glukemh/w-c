@@ -1,7 +1,7 @@
 :root {
 	height: 100%;
 
-	--color-accent-color: oklch(80% 1 107);
+	--color-accent-color: oklch(80% 1 109);
 	--color-accent-color-text: oklch(90% 10 0);
 	--color-active-text: color-mix(
 		in oklab,

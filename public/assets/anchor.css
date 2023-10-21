@@ -1,6 +1,22 @@
+@import url("/assets/focus-ring.css");
+
 a {
+	--_anchor-transition-color: color 0.2s ease;
+	--_anchor-transition-text-decoration-color: text-decoration-color 0.2s ease;
+	--_anchor-transition-text-underline-offset: text-underline-offset 0.2s ease;
 	color: var(--color-link-text);
 	cursor: pointer;
+	transition: var(--_anchor-transition-color),
+		var(--_anchor-transition-text-decoration-color),
+		var(--_anchor-transition-text-underline-offset);
+	text-underline-offset: 0.25em;
+	text-decoration-color: transparent;
+}
+
+a:hover {
+	text-decoration: underline;
+	text-underline-offset: 0.1em;
+	text-decoration-color: currentColor;
 }
 
 :visited {

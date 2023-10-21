@@ -1,34 +1,24 @@
 :host {
+	--_mix-color: color-mix(
+		in oklch decreasing hue,
+		var(--color-canvas),
+		var(--color-accent-color) 3%
+	);
 	display: block;
 	min-height: 100%;
 	background: radial-gradient(
-			ellipse closest-corner at 40% 45%,
-			color-mix(
-					in oklch decreasing hue,
-					var(--color-canvas),
-					var(--color-accent-color) 3%
-				)
-				0%,
+			ellipse closest-side at 35% 45%,
+			var(--_mix-color) 0%,
 			transparent 100%
 		),
 		radial-gradient(
-			ellipse closest-corner at 65% 70%,
-			color-mix(
-					in oklch decreasing hue,
-					var(--color-canvas),
-					var(--color-accent-color) 3%
-				)
-				0%,
+			ellipse closest-side at 65% 70%,
+			var(--_mix-color) 0%,
 			transparent 100%
 		),
 		radial-gradient(
-			ellipse closest-corner at 75% 25%,
-			color-mix(
-					in oklch decreasing hue,
-					var(--color-canvas),
-					var(--color-accent-color) 3%
-				)
-				0%,
+			ellipse closest-side at 75% 25%,
+			var(--_mix-color) 0%,
 			transparent 100%
 		);
 }

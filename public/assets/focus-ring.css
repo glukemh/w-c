@@ -1,0 +1,20 @@
+:focus-visible {
+	outline: 1.5px solid var(--color-accent-color);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	:focus-visible {
+		animation: focus-visible 0.3s ease forwards;
+	}
+}
+
+@keyframes focus-visible {
+	0% {
+		outline-color: transparent;
+		outline-offset: 0.625em;
+	}
+	100% {
+		outline-color: var(--color-accent-color);
+		outline-offset: 0.125em;
+	}
+}

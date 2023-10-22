@@ -1,11 +1,23 @@
 import lightMixin from "/assets/light-mixin.js";
 
-export default class PageRouter extends lightMixin() {
-	static pushState(...args) {
-		history.pushState(...args);
+/**
+ * @typedef {typeof customElements & { getName: (constructor: typeof HTMLElement) => string }} CustomElementsWithGetName
+ */
+
+export default class PageRouter extends lightMixin(HTMLElement) {
+	/**
+	 * Forwards args to history.pushState and dispatches a PopStateEvent with type "pushstate".
+	 * @param  {Parameters<typeof history.pushState>} pushStateArgs arguments to be forwarded to history.pushState
+	 */
+	static pushState(...pushStateArgs) {
+		history.pushState(...pushStateArgs);
 		window.dispatchEvent(new PopStateEvent("pushstate"));
 	}
 
+	/**
+	 * Returns the corresponding component path from a given pathname.
+	 * @param {string} pathname a pathname from a url such as location.pathname
+	 */
 	static componentRoute(pathname) {
 		pathname += pathname.endsWith("/") ? "index.js" : ".js";
 		return "/components/routes" + pathname;
@@ -14,7 +26,6 @@ export default class PageRouter extends lightMixin() {
 	static get currentComponentRoute() {
 		return this.componentRoute(location.pathname);
 	}
-
 	constructor() {
 		super();
 		window.addEventListener("popstate", () => this.handlePageChange());
@@ -27,9 +38,14 @@ export default class PageRouter extends lightMixin() {
 
 	async handlePageChange() {
 		const { default: constructor } = await import(
-			this.constructor.currentComponentRoute
+			PageRouter.currentComponentRoute
 		);
-		this.connect(document.createElement(customElements.getName(constructor)));
+		this.connect(
+			document.createElement(
+				/** @type {CustomElementsWithGetName} */
+				(customElements).getName(constructor)
+			)
+		);
 	}
 }
 

@@ -1,14 +1,29 @@
 import mixinForContent from "./mixin-for-content.js";
 import lightMixin from "./light-mixin.js";
-import mixinForMixins from "./mixin-for-mixins.js";
 
+/**
+ * A mixin for both content mixin and light mixin
+ * @param {string} handle File handle for mixinForContent
+ */
 export default async function mixinForLightContent(handle) {
-	const mixin = await mixinForMixins([lightMixin, mixinForContent(handle)]);
-	return (Base = HTMLElement) =>
-		class LightContentMixin extends mixin(Base) {
-			constructor() {
-				super();
-				this.connect(this.constructor.content);
+	const contentMixin = await mixinForContent(handle);
+	/**
+	 * @template {GConstructor<HTMLElement>} T
+	 * @param {T} Base
+	 */
+	return (Base) => {
+		class LightContentMixin extends lightMixin(contentMixin(Base)) {
+			/**
+			 * @param  {...any} args
+			 */
+			constructor(...args) {
+				super(...args);
+				this.connect(LightContentMixin.content);
 			}
-		};
+		}
+
+		return /** @type {{ new (): InstanceType<T> & LightContentMixin } & typeof LightContentMixin} */ (
+			LightContentMixin
+		);
+	};
 }

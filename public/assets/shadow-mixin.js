@@ -1,7 +1,7 @@
 /**
- * Returns a class that extends the given base class and mixes in a helper method to replace shadowRoot children with content.
- * @template {new (...args: any[]) => HTMLElement} T extends typeof HTMLElement
- * @param {T} Base base HTMLElement class to extend
+ * A mixin that applies a shadowRoot and a single connect method which replaces shadowRoot children with content.
+ * @template {GConstructor<HTMLElement>} T
+ * @param {T} Base
  */
 export default function shadowMixin(Base) {
 	return class ShadowMixin extends Base {

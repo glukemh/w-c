@@ -2,21 +2,28 @@ import mixinForShadowContent from "/assets/mixin-for-shadow-content.js";
 import PageRouter from "/components/page-router.js";
 
 const mixin = await mixinForShadowContent("a-route");
-export default class ARoute extends mixin() {
+export default class ARoute extends mixin(HTMLElement) {
 	static get observedAttributes() {
 		return ["href"];
 	}
 
-	a = this.shadowRoot.querySelector("a");
+	a = /** @type {HTMLAnchorElement} */ (this.shadow.querySelector("a"));
 
+	/**
+	 * @property {string} href
+	 */
 	get href() {
-		return this.getAttribute("href");
+		return this.getAttribute("href") || "";
 	}
 
 	set href(value) {
 		this.setAttribute("href", value);
 	}
 
+	/**
+	 * The route of the component to be imported.
+	 * @property {string | null} componentRoute
+	 */
 	get componentRoute() {
 		if (!this.a.pathname) return null;
 		return PageRouter.componentRoute(this.a.pathname);
@@ -31,6 +38,9 @@ export default class ARoute extends mixin() {
 		this.handleHrefChange();
 	}
 
+	/**
+	 * @type {AttributeChangedCallback}
+	 */
 	attributeChangedCallback(name, oldValue, newValue) {
 		if (oldValue !== newValue) return;
 		switch (name) {
@@ -40,6 +50,10 @@ export default class ARoute extends mixin() {
 		}
 	}
 
+	/**
+	 * Prevent full page reload and navigate using PageRouter.pushState.
+	 * @param {MouseEvent} e
+	 */
 	handleNavigation(e) {
 		e.preventDefault();
 		PageRouter.pushState({}, "", this.href);

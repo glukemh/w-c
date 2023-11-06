@@ -3,6 +3,6 @@ import "/components/a-route.js";
 import mixinForShadowContent from "/assets/mixin-for-shadow-content.js";
 
 const mixin = await mixinForShadowContent("r-other-page");
-export default class ROtherPage extends mixin() {}
+export default class ROtherPage extends mixin(HTMLElement) {}
 
 customElements.define("r-other-page", ROtherPage);

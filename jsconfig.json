@@ -1,11 +1,14 @@
 {
   "compilerOptions": {
+    "target": "ESNext",
     "strictNullChecks": true,
     "checkJs": true,
     "baseUrl": "./public",
-    "lib": ["ESNext", "DOM"],
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
     "paths": {
       "/assets/*": ["./assets/*"],
+      "/components/*": ["./components/*"],
     }
   }
 }

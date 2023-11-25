@@ -56,7 +56,7 @@ export default class ARoute extends mixin(HTMLElement) {
 	 */
 	handleNavigation(e) {
 		e.preventDefault();
-		PageRouter.pushState({}, "", this.href);
+		PageRouter.visit(this.href);
 	}
 
 	async handleHrefChange() {

@@ -1,0 +1,16 @@
+{
+	"name": "w-c",
+	"version": "1.0.0",
+	"description": "A static site hosted on Cloudflare Pages.",
+	"main": "index.js",
+	"scripts": {
+		"dev": "npx wrangler pages dev public",
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20231121.0"
+	}
+}

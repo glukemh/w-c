@@ -15,6 +15,14 @@ export default class PageRouter extends lightMixin(HTMLElement) {
 	}
 
 	/**
+	 * Visit page at pathname.
+	 * @param {Parameters<typeof history.pushState>[2]} pathname
+	 */
+	static visit(pathname) {
+		this.pushState(null, "", pathname);
+	}
+
+	/**
 	 * Returns the corresponding component path from a given pathname.
 	 * @param {string} pathname a pathname from a url such as location.pathname
 	 */
@@ -26,6 +34,7 @@ export default class PageRouter extends lightMixin(HTMLElement) {
 	static get currentComponentRoute() {
 		return this.componentRoute(location.pathname);
 	}
+
 	constructor() {
 		super();
 		window.addEventListener("popstate", () => this.handlePageChange());

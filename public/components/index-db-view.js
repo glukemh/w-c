@@ -4,9 +4,9 @@ const mixin = await mixinForShadowContent("index-db-view");
 
 class IndexDbView extends mixin(HTMLElement) {
 	/**
-	 * @type {HTMLUListElement} ul Reference to the ul element.
+	 * @type {HTMLOListElement} ul Reference to the ul element.
 	 */
-	ul = /** @type {HTMLUListElement} */ (this.shadow.querySelector("ul"));
+	ol = /** @type {HTMLOListElement} */ (this.shadow.querySelector("ol"));
 	/**
 	 * @type {HTMLInputElement} fileInput Reference to the file input element.
 	 */
@@ -47,7 +47,7 @@ class IndexDbView extends mixin(HTMLElement) {
 	}
 
 	async renderDB() {
-		this.ul.replaceChildren();
+		this.ol.replaceChildren();
 		const db = await this.db;
 		if (db.objectStoreNames.contains("w-c")) {
 			const transaction = db.transaction("w-c", "readonly");
@@ -58,7 +58,7 @@ class IndexDbView extends mixin(HTMLElement) {
 				if (result) {
 					const li = document.createElement("li");
 					li.textContent = result.value.name;
-					this.shadow.querySelector("ul")?.appendChild(li);
+					this.ol.appendChild(li);
 					result.continue();
 				}
 			});
@@ -101,3 +101,4 @@ class IndexDbView extends mixin(HTMLElement) {
 }
 
 customElements.define("index-db-view", IndexDbView);
+export default IndexDbView;

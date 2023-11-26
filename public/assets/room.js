@@ -142,8 +142,8 @@ class Room {
 	 */
 	constructor(id) {
 		this.id = id;
-		const url = new URL("/api/room/signal", location.origin);
-		url.searchParams.set("roomId", this.id);
+		const url = new URL(`/api/room/${id}`, location.origin);
+		url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
 		url.searchParams.set("uid", UID);
 		this.ws = new WebSocket(url);
 		this.ws.addEventListener("open", (e) => {

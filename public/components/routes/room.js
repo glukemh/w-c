@@ -14,11 +14,6 @@ export default class RRoom extends mixin(HTMLElement) {
 	connectedCallback() {
 		super.connectedCallback?.();
 		this.roomIdEl.textContent = this.room.id;
-		this.connectToRoom();
-	}
-
-	async connectToRoom() {
-		await this.room.sendOffer();
 	}
 }
 

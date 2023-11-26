@@ -12,12 +12,7 @@
  */
 
 /**
- * @typedef {{ rooms: DurableObjectNamespace }} Env
- */
-
-/**
- * Room object stored in KV
- * @typedef {{ offer: RTCSessionDescriptionInit, offerClient: WebSocket, answer: RTCSessionDescriptionInit, answerClient: WebSocket, iceCandidates: RTCIceCandidateInit[], createdAt: number }[]} Room
+ * @typedef {{ ROOM: DurableObjectNamespace }} Env
  */
 
 /**
@@ -25,22 +20,27 @@
  */
 
 /**
- * @param {Parameters<PagesFunction<Env>>} args
+ * @param {Parameters<PagesFunction<Env, "roomName">>} args
  * @returns {Promise<Response>}
  */
-export async function onRequestPost(...args) {
-	const [{ request, env }] = args;
-	const url = new URL(request.url);
-	const roomName = url.searchParams.get("roomName");
-	if (!roomName || roomName.length > 32) {
+export async function onRequestGet(...args) {
+	console.log("~~~ onRequestPost", args);
+
+	const [{ request, env, params }] = args;
+	const { roomName } = params;
+	if (typeof roomName !== "string" || roomName.length > 32) {
 		return new Response("Expected roomName (shorter than 32 characters)", {
 			status: 400,
 		});
 	}
-	const { rooms } = env;
+	const { ROOM } = env;
+	console.debug("~~~ ROOM", ROOM);
 	try {
-		const room = rooms.get(rooms.idFromName(roomName));
-		return room.fetch(request);
+		const room = ROOM.get(ROOM.idFromName(roomName));
+		console.debug("~~~ room", room);
+		const res = await room.fetch(request);
+		console.debug("~~~ res", res);
+		return res;
 	} catch (error) {
 		console.error(error);
 		return new Response("Something went wrong", { status: 500 });
@@ -54,7 +54,7 @@ export async function onRequestPost(...args) {
  * @property {Map<string, RTCSessionDescriptionInit>} answer Map from uid to answer
  */
 
-export class RoomConnection {
+export class Room {
 	/**
 	 * @type {Map<string, WebSocket>}
 	 */
@@ -72,11 +72,13 @@ export class RoomConnection {
 	 */
 	async fetch(request) {
 		const upgradeHeader = request.headers.get("Upgrade");
+		console.debug("~~~ upgradeHeader", upgradeHeader);
 		if (upgradeHeader?.toLowerCase() !== "websocket") {
 			return new Response("Expected websocket", { status: 426 });
 		}
 		const url = new URL(request.url);
 		const uid = url.searchParams.get("uid");
+		console.debug("~~~ uid", uid);
 		if (!uid) {
 			return new Response("Expected uid", { status: 400 });
 		}
@@ -86,6 +88,8 @@ export class RoomConnection {
 		if (existingClient) {
 			existingClient.close();
 		}
+
+		console.debug("~~~ server", server);
 
 		server.addEventListener("message", async (event) => {
 			if (typeof event.data !== "string") {

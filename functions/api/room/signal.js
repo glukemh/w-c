@@ -12,7 +12,7 @@
  */
 
 /**
- * @typedef {{ rooms: any }} Env
+ * @typedef {{ rooms: DurableObjectNamespace }} Env
  */
 
 /**

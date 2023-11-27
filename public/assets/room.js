@@ -143,7 +143,7 @@ class RoomPeerConnection {
 	 * @returns {Promise<void>}
 	 */
 	async offer() {
-		this.setDataChannel(this.peerConnection.createDataChannel("file"));
+		this.setDataChannel(this.peerConnection.createDataChannel("message"));
 		const offer = await this.peerConnection.createOffer();
 		await this.peerConnection.setLocalDescription(offer);
 		this.signalOverWs(offer);
@@ -167,6 +167,7 @@ class RoomPeerConnection {
 		this.dataChannel[dataChannel.label] = dataChannel;
 		dataChannel.addEventListener("message", (e) => {
 			console.log(`message on channel ${dataChannel.label}\n`, e.data);
+			alert(e.data);
 		});
 		dataChannel.addEventListener("open", () => {
 			console.log(`channel ${dataChannel.label} open`);
@@ -212,6 +213,9 @@ class Room {
 	 * @type {WebSocket}
 	 */
 	ws;
+	get peerIds() {
+		return [...this.peers.keys()];
+	}
 	/**
 	 * Constructor takes in a room id and creates a peer connection
 	 * @param {string} id
@@ -269,9 +273,9 @@ class Room {
 	}
 
 	#peersChanged() {
-		const peers = [...this.peers.keys()];
+		const peerIds = this.peerIds;
 		for (const callback of this.#peerChangeCallbacks) {
-			callback(peers);
+			callback(peerIds);
 		}
 	}
 
@@ -279,7 +283,7 @@ class Room {
 	 * Register a callback which will be called when the list of peers changes
 	 * @param {(peers: string[]) => void} callback
 	 */
-	addPeerChangeCallback(callback) {
+	onPeerChange(callback) {
 		this.#peerChangeCallbacks.push(callback);
 	}
 

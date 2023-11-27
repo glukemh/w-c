@@ -7,8 +7,6 @@
  * @returns {Promise<Response>}
  */
 export async function onRequestGet(...args) {
-	console.log("~~~ onRequestPost", args);
-
 	const [{ request, env, params }] = args;
 	const { roomName } = params;
 	if (typeof roomName !== "string" || roomName.length > 32) {
@@ -17,12 +15,9 @@ export async function onRequestGet(...args) {
 		});
 	}
 	const { ROOM } = env;
-	console.debug("~~~ ROOM", ROOM);
 	try {
 		const room = ROOM.get(ROOM.idFromName(roomName));
-		console.debug("~~~ room", room);
 		const res = await room.fetch(request);
-		console.debug("~~~ res", res);
 		return res;
 	} catch (error) {
 		console.error(error);

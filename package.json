@@ -6,6 +6,7 @@
 	"scripts": {
 		"dev": "npx wrangler pages dev public --do ROOM=Room@rtc-signaling",
 		"do": "npx wrangler dev do/index.js",
+		"deploy": "npx wrangler deploy do/index.js && git push origin main",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"keywords": [],

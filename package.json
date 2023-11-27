@@ -4,7 +4,8 @@
 	"description": "A static site hosted on Cloudflare Pages.",
 	"main": "index.js",
 	"scripts": {
-		"dev": "npx wrangler pages dev public",
+		"dev": "npx wrangler pages dev public --do ROOM=Room@rtc-signaling",
+		"do": "npx wrangler dev do/index.js",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"keywords": [],

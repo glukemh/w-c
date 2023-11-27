@@ -7,7 +7,13 @@ A static site hosted on Cloudflare Pages.
 Use Wrangler CLI to develop locally.
 
 ```bash
-npx wrangler pages dev public
+npm run do
+```
+
+In a second terminal
+
+```bash
+npm run dev
 ```
 
 ## Deploy

@@ -10,14 +10,12 @@ export default {
 
 export class Room {
 	/**
-	 * @type {Map<string, WebSocket>}
-	 */
-	sessions = new Map();
-	/**
 	 * Durable Object constructor
-	 * @param {DurableObjectState} _state
+	 * @param {DurableObjectState} state
 	 */
-	constructor(_state) {}
+	constructor(state) {
+		this.state = state;
+	}
 
 	/**
 	 * Durable Object fetch handler
@@ -34,7 +32,22 @@ export class Room {
 			return new Response("Expected uid", { status: 400 });
 		}
 		let [client, server] = Object.values(new WebSocketPair());
-		this.listenToWs(server, uid);
+		/**
+		 * @type {string[]}
+		 */
+		const users = [];
+		for (const ws of this.state.getWebSockets()) {
+			if (ws.readyState !== WebSocket.READY_STATE_OPEN) continue;
+			const attachment = ws.deserializeAttachment();
+			if (attachment?.uid === uid) {
+				ws.close();
+			} else if (typeof attachment?.uid === "string") {
+				users.push(attachment.uid);
+			}
+		}
+		this.state.acceptWebSocket(server, [uid]);
+		server.serializeAttachment({ uid });
+		server.send(JSON.stringify({ users }));
 		return new Response(null, {
 			status: 101,
 			webSocket: client,
@@ -42,56 +55,43 @@ export class Room {
 	}
 
 	/**
-	 * Adds listeners to the WebSocket
-	 * @param {WebSocket} server
-	 * @param {string} uid
+	 * Effectively a "message" event listener for a WebSocket accepted via state.acceptWebSocket()
+	 * @param {WebSocket} _ws
+	 * @param {string | ArrayBuffer} rawMessage
 	 */
-	listenToWs(server, uid) {
-		server.addEventListener("message", async (event) => {
-			if (typeof event.data !== "string") {
-				return;
-			}
-			/**
-			 * @type {{ to: string | string[] }}
-			 */
-			const message = JSON.parse(event.data);
-			if (typeof message.to === "string") {
-				const ws = this.sessions.get(message.to);
-				if (!ws) return;
-				ws.send(JSON.stringify(message));
-			} else if (Array.isArray(message.to)) {
-				for (const uid of message.to) {
-					if (typeof uid !== "string") continue;
-					const ws = this.sessions.get(uid);
-					if (!ws) continue;
-					ws.send(JSON.stringify(message));
-				}
-			}
-		});
-
-		server.addEventListener("error", () => {
-			this.sessions.delete(uid);
-		});
-
-		server.addEventListener("close", () => {
-			this.sessions.delete(uid);
-		});
-
-		const existingClient = this.sessions.get(uid);
-		if (existingClient) {
-			existingClient.close();
+	webSocketMessage(_ws, rawMessage) {
+		if (typeof rawMessage !== "string") {
+			return;
 		}
-		this.sessions.set(uid, server);
-		server.accept();
+		const message = JSON.parse(rawMessage);
+		if (typeof message?.to === "string") {
+			this.broadcastMessageByTag(rawMessage, message.to);
+		} else if (Array.isArray(message?.to)) {
+			for (const uid of message.to) {
+				if (typeof uid !== "string") continue;
+				this.broadcastMessageByTag(rawMessage, uid);
+			}
+		}
+	}
 
-		if (server.readyState === WebSocket.READY_STATE_OPEN) {
-			server.send(JSON.stringify({ users: [...this.sessions.keys()] }));
-		} else if (server.readyState === WebSocket.READY_STATE_CONNECTING) {
-			server.addEventListener("open", () => {
-				server.send(JSON.stringify({ users: [...this.sessions.keys()] }));
-			});
-		} else {
-			this.sessions.delete(uid);
+	/**
+	 * Called by the system when any non-disconnection related errors occur.
+	 * @param {WebSocket} ws
+	 * @param {any} error
+	 */
+	webSocketError(ws, error) {
+		console.error(`Error with websocket ${ws.url}`, error);
+	}
+
+	/**
+	 *
+	 * @param {string} [tag]
+	 * @param {Parameters<WebSocket["send"]>[0]} message
+	 */
+	broadcastMessageByTag(message, tag) {
+		for (const ws of this.state.getWebSockets(tag)) {
+			if (ws.readyState !== WebSocket.READY_STATE_OPEN) continue;
+			ws.send(message);
 		}
 	}
 }

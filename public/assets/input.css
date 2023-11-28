@@ -1,0 +1,10 @@
+@import url("/assets/focus-ring.css");
+
+input {
+	background-color: var(--color-field);
+	color: var(--color-field-text);
+	border: none;
+	padding: 0.5em 1em;
+	border: 1.5px solid var(--color-field-text);
+	border-radius: 4px;
+}

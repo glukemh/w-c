@@ -1,0 +1,9 @@
+:host {
+	text-align: center;
+}
+
+main-page::part(main) {
+	display: grid;
+	place-content: center;
+	min-height: 100dvh;
+}

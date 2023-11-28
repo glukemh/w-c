@@ -1,11 +1,12 @@
 import "/components/main-page.js";
+import "/components/a-route.js";
 import mixinForShadowContent from "/assets/mixin-for-shadow-content.js";
 import Room from "/assets/room.js";
 
 const mixin = await mixinForShadowContent("r-room");
 export default class RRoom extends mixin(HTMLElement) {
 	roomIdEl = /** @type {HTMLSpanElement} */ (
-		this.shadow.getElementById("room-id")
+		this.shadow.getElementById("room-name")
 	);
 	peerListEl = /** @type {HTMLUListElement} */ (
 		this.shadow.getElementById("peer-list")

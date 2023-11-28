@@ -1,0 +1,6 @@
+@import url("/assets/input.css");
+
+form {
+	display: flex;
+	gap: 0.5em;
+}

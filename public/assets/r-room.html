@@ -1,8 +1,12 @@
+<link rel="stylesheet" href="/assets/r-room.css">
 <main-page>
-  <h1>Room <span id="room-id"></span></h1>
+  <nav>
+    <a-route href="/">Leave 👋</a-route>
+  </nav>
+  <h1 id="room-name"></h1>
   <form id="broadcast-form">
     <input type="text" name="message" placeholder="Message">
-    <button type="submit">Broadcast</button>
+    <input type="submit" value="Broadcast">
   </form>
   <ul id="peer-list"></ul>
 </main-page>

@@ -1,0 +1,10 @@
+@import url("/assets/input.css") layer(base);
+
+:host {
+	text-align: center;
+}
+
+nav {
+	text-align: start;
+	margin-block: 1em;
+}

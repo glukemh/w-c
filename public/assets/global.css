@@ -2,34 +2,25 @@
 	height: 100%;
 
 	--color-accent-color: oklch(80% 1 109);
-	--color-accent-color-text: oklch(90% 10 0);
-	--color-active-text: color-mix(
-		in oklab,
-		var(--color-link-text),
-		var(--color-canvas) 30%
-	);
+	--color-accent-color-text: oklch(16% 0.75 56);
+	--color-active-text: oklch(70% 0.11 270);
 	--color-button-border: oklch(70% 20 120);
 	--color-button-face: oklch(90% 10 0);
 	--color-button-text: oklch(70% 20 120);
-	--color-canvas: oklch(0% 0 10);
-	--color-canvas-text: oklch(0.95 0.01 104);
-	--color-field: oklch(70% 0 120);
-	--color-field-text: oklch(100% 0 120);
+	--color-canvas: oklch(15% 0.05 56);
+	--color-canvas-text: oklch(95% 0.01 104);
+	--color-field: oklch(24% 0.12 56);
+	--color-field-text: oklch(95% 0 104);
 	--color-gray-text: oklch(50% 0 60);
 	--color-highlight: oklch(70% 0 120);
 	--color-highlight-text: oklch(100% 0 120);
 	--color-link-text: oklch(65% 0.5 211);
 	--color-mark: oklch(70% 20 120);
 	--color-mark-text: oklch(90% 10 0);
-	--color-visited-text: color-mix(
-		in oklab,
-		var(--color-link-text),
-		var(--color-canvas-text) 50%
-	);
+	--color-visited-text: oklch(70% 0.25 270);
 }
 
 body {
-	height: 100%;
 	margin: 0;
 	background-color: var(--color-canvas);
 	color: var(--color-canvas-text);
@@ -37,25 +28,25 @@ body {
 		Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 }
 
-@media (prefers-color-schema: light) {
+@media (prefers-color-scheme: light) {
 	:root {
-		--color-accent-color: oklch(70% 20 120);
+		--color-accent-color: oklch(80% 1 109);
 		--color-accent-color-text: oklch(90% 10 0);
-		--color-active-text: oklch(70% 20 120);
+		--color-active-text: oklch(85% 0.42 275);
 		--color-button-border: oklch(70% 20 120);
 		--color-button-face: oklch(90% 10 0);
 		--color-button-text: oklch(70% 20 120);
-		--color-canvas: oklch(100% 0 120);
+		--color-canvas: oklch(95% 0.01 56);
 		--color-canvas-text: oklch(0% 0 0);
 		--color-field: oklch(70% 0 120);
 		--color-field-text: oklch(0% 0 0);
 		--color-gray-text: oklch(50% 0 60);
 		--color-highlight: oklch(70% 0 120);
 		--color-highlight-text: oklch(0% 0 0);
-		--color-link-text: oklch(70% 20 120);
+		--color-link-text: oklch(85% 0.55 259);
 		--color-mark: oklch(70% 20 120);
 		--color-mark-text: oklch(90% 10 0);
-		--color-visited-text: oklch(70% 20 120);
+		--color-visited-text: oklch(85% 0.52 275);
 	}
 }
 

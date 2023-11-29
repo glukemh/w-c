@@ -17,7 +17,7 @@ class RoomPeerConnection {
 		],
 	};
 	/**
-	 * @type {Record<string, RTCDataChannel}
+	 * @type {Record<string, RTCDataChannel>}
 	 */
 	dataChannel = {};
 	/**

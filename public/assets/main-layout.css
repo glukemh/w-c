@@ -1,9 +1,16 @@
 :host {
 	display: grid;
 	grid-template-areas: "header main aside";
-	grid-template-columns: minmax(min-content, 30ch) 1fr minmax(min-content, 30ch);
+	grid-template-columns: minmax(20%, 1fr) minmax(auto, 120ch) minmax(20%, 1fr);
 	align-items: start;
-	min-height: 100%;
+	min-block-size: 100cqb;
+
+	@container (max-width: 120ch) {
+		grid-template-areas:
+			"header header aside aside"
+			"...    main   main  ...";
+		grid-template-columns: 12px 1fr min-content 12px;
+	}
 }
 
 header {

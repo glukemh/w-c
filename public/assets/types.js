@@ -61,5 +61,11 @@
 
 /**
  * Type signature for attributeChangedCallback HTMLElement method
- * @typedef {(name: string, oldValue: string | null, newValue: string | null) => void} AttributeChangedCallback
+ * @template {string} [Name = string]
+ * @typedef {(name: Name, oldValue: string | null, newValue: string | null) => void} AttributeChangedCallback
+ */
+
+/**
+ * @template {any[]} T tuple
+ * @typedef {T[number]} TupleToUnion
  */

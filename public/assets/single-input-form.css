@@ -1,4 +1,5 @@
 @import url("/assets/input.css") layer(base);
+@import url("/assets/button.css") layer(base);
 
 form {
 	text-align: center;

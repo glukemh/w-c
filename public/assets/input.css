@@ -1,10 +1,16 @@
 @import url("/assets/focus-ring.css");
 
 input {
+	font-size: inherit;
 	background-color: var(--color-field);
 	color: var(--color-field-text);
 	border: none;
-	padding: 0.5em 1em;
+	padding-block: 0.75em;
+	padding-inline: 1.25em;
 	border: 1.5px solid var(--color-field-text);
 	border-radius: 4px;
+}
+
+input[type="submit"] {
+	cursor: pointer;
 }

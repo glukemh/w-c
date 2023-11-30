@@ -4,12 +4,12 @@
 	--color-accent-color: oklch(80% 1 109);
 	--color-accent-color-text: oklch(16% 0.75 56);
 	--color-active-text: oklch(70% 0.11 270);
-	--color-button-border: oklch(70% 20 120);
-	--color-button-face: oklch(90% 10 0);
-	--color-button-text: oklch(70% 20 120);
-	--color-canvas: oklch(15% 0.05 56);
+	--color-button-border: oklch(97.92% 0 215);
+	--color-button-face: oklch(41.25% 0.04 215);
+	--color-button-text: oklch(97.92% 0 215);
+	--color-canvas: oklch(22% 0 215);
 	--color-canvas-text: oklch(95% 0.01 104);
-	--color-field: oklch(24% 0.12 56);
+	--color-field: oklch(22% 0.04 215);
 	--color-field-text: oklch(95% 0 104);
 	--color-gray-text: oklch(50% 0 60);
 	--color-highlight: oklch(70% 0 120);

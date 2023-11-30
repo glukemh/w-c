@@ -1,5 +1,5 @@
 button {
-	background-color: var(--color-button-face);
+	background-color: transparent;
 	border: 1.5px solid var(--color-button-border);
 	color: var(--color-button-text);
 	padding: 0.5em 1em;
@@ -8,4 +8,10 @@ button {
 	padding-inline: 1.25em;
 	border-radius: 4px;
 	cursor: pointer;
+	transition: background-color 0.1s ease-in-out;
+}
+
+button:hover,
+button:focus {
+	background-color: var(--color-button-face);
 }

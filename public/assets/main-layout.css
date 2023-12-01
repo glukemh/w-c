@@ -22,7 +22,7 @@ aside {
 	top: 0;
 }
 
-@container (width < 1200px) {
+@container (width < 120ch) {
 	:host {
 		grid-template-areas:
 			"header header aside aside"

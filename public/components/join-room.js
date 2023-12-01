@@ -15,7 +15,6 @@ class JoinRoom extends mixin(HTMLElement) {
 	 * @returns {void}
 	 */
 	handleSubmit = (e) => {
-		e.preventDefault();
 		const formData = new FormData(this.singleInputForm.form);
 		const roomId = /** @type {string} */ (formData.get("room-id"));
 		const url = new URL("/room", location.origin);

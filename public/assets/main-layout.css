@@ -10,6 +10,7 @@
 			"header header aside aside"
 			"...    main   main  ...";
 		grid-template-columns: 12px 1fr min-content 12px;
+		grid-template-rows: auto 1fr;
 	}
 }
 

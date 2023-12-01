@@ -1,7 +1,9 @@
 import "/components/main-page.js";
 import "/components/a-route.js";
+import "/components/single-input-form.js";
 import mixinForShadowContent from "/assets/mixin-for-shadow-content.js";
 import Room from "/assets/room.js";
+import SingleInputForm from "/components/single-input-form.js";
 
 const mixin = await mixinForShadowContent("r-room");
 export default class RRoom extends mixin(HTMLElement) {
@@ -11,7 +13,7 @@ export default class RRoom extends mixin(HTMLElement) {
 	peerListEl = /** @type {HTMLUListElement} */ (
 		this.shadow.getElementById("peer-list")
 	);
-	broadcastForm = /** @type {HTMLFormElement} */ (
+	broadcastForm = /** @type {SingleInputForm} */ (
 		this.shadow.getElementById("broadcast-form")
 	);
 	/**
@@ -24,8 +26,7 @@ export default class RRoom extends mixin(HTMLElement) {
 		this.renderPeerNames();
 		this.room.onPeerChange(() => this.renderPeerNames());
 		this.broadcastForm.addEventListener("submit", (e) => {
-			e.preventDefault();
-			const formData = new FormData(this.broadcastForm);
+			const formData = new FormData(this.broadcastForm.form);
 			const message = formData.get("message");
 			if (!message) return;
 			this.room.broadcast(message, "message");

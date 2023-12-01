@@ -4,9 +4,8 @@
     <a-route href="/">Leave 👋</a-route>
   </nav>
   <h1 id="room-name"></h1>
-  <form id="broadcast-form">
-    <input type="text" name="message" placeholder="Message">
-    <input type="submit" value="Broadcast">
-  </form>
+  <single-input-form id="broadcast-form" type="text" input-name="message" placeholder="Message">
+    <span slot="submit">Broadcast</span>
+  </single-input-form>
   <ul id="peer-list"></ul>
 </main-page>

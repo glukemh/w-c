@@ -1,6 +1,3 @@
-@import url("/assets/input.css") layer(base);
-
-form {
-	text-align: center;
-	line-height: 3.5em;
+[slot="label"] {
+	font-size: 1.2em;
 }

@@ -3,15 +3,15 @@ import mixinForShadowContent from "/assets/mixin-for-shadow-content.js";
 const mixin = await mixinForShadowContent("single-input-form");
 
 /**
- * @typedef {["name", "type", "placeholder", "value"]} Attributes
- * @typedef {TupleToUnion<["name", "type", "placeholder", "value"]>} AttributesUnion
+ * @typedef {["input-name", "type", "placeholder", "value"]} Attributes
+ * @typedef {TupleToUnion<Attributes>} AttributesUnion
  */
 class SingleInputForm extends mixin(HTMLElement) {
 	/**
 	 * @type {Attributes}
 	 */
 	static get observedAttributes() {
-		return ["name", "type", "placeholder", "value"];
+		return ["input-name", "type", "placeholder", "value"];
 	}
 	form = /** @type {HTMLFormElement} */ (this.shadow.querySelector("form"));
 	input = /** @type {HTMLInputElement} */ (this.shadow.querySelector("input"));
@@ -41,7 +41,9 @@ class SingleInputForm extends mixin(HTMLElement) {
 	 */
 	attributeChangedCallback(name, oldValue, newValue) {
 		switch (name) {
-			case "name":
+			case "input-name":
+				this.input.name = newValue || "";
+				break;
 			case "type":
 			case "placeholder":
 			case "value":

@@ -1,17 +1,21 @@
 button {
 	background-color: transparent;
-	border: 1.5px solid var(--color-button-border);
-	color: var(--color-button-text);
+	border: 1.5px solid transparent;
+	color: inherit;
 	padding: 0.5em 1em;
 	font-size: inherit;
 	padding-block: 0.75em;
 	padding-inline: 1.25em;
 	border-radius: 4px;
 	cursor: pointer;
-	transition: background-color 0.1s ease-in-out;
+	transition-property: background-color, color, border-color;
+	transition-duration: 0.1s;
+	transition-timing-function: ease-in-out;
+	border-color: var(--color-button-border);
 }
 
 button:hover,
 button:focus {
 	background-color: var(--color-button-face);
+	color: var(--color-button-text);
 }

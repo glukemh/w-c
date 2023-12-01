@@ -2,8 +2,11 @@
 	text-align: center;
 }
 
+h1 {
+	font-size: 2.5rem;
+	margin-bottom: 1em;
+}
+
 main-page::part(main) {
-	display: grid;
-	place-content: center;
-	min-height: 100dvh;
+	align-self: center;
 }

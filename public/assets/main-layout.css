@@ -4,14 +4,6 @@
 	grid-template-columns: minmax(20%, 1fr) minmax(auto, 120ch) minmax(20%, 1fr);
 	align-items: start;
 	min-block-size: 100cqb;
-
-	@container (max-width: 120ch) {
-		grid-template-areas:
-			"header header aside aside"
-			"...    main   main  ...";
-		grid-template-columns: 12px 1fr min-content 12px;
-		grid-template-rows: auto 1fr;
-	}
 }
 
 header {
@@ -28,4 +20,14 @@ aside {
 	grid-area: aside;
 	position: sticky;
 	top: 0;
+}
+
+@container (max-width: 120ch) {
+	:host {
+		grid-template-areas:
+			"header header aside aside"
+			"...    main   main  ...";
+		grid-template-columns: 12px 1fr min-content 12px;
+		grid-template-rows: auto 1fr;
+	}
 }

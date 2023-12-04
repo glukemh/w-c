@@ -73,17 +73,3 @@ body {
 		--color-visited-text: visitedtext;
 	}
 }
-
-page-router:defined {
-	animation: fade-in 0.5s ease-in-out;
-}
-
-@keyframes fade-in {
-	from {
-		filter: opacity(0);
-	}
-
-	to {
-		filter: opacity(1);
-	}
-}

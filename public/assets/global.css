@@ -74,16 +74,21 @@ body {
 	}
 }
 
+body * {
+	/* Safari needs display block for opacity to take effect */
+	display: block;
+}
+
 page-router:defined {
 	animation: fade-in 0.5s ease-in-out;
 }
 
 @keyframes fade-in {
 	from {
-		filter: opacity(0);
+		opacity: 0;
 	}
 
 	to {
-		filter: opacity(1);
+		opacity: 1;
 	}
 }

@@ -1,17 +1,17 @@
-import mixinForContent from "./mixin-for-content.js";
-import shadowMixin from "./shadow-mixin.js";
+import mixinForContent from "/assets/mixin-for-content.js";
+import shadowMixin from "/assets/shadow-mixin.js";
 
 /**
  * Provides a function which will apply a shadow and content mixin to the given base class.
- * @param {string} handle file handle of the html content in the assets directory
+ * @param {string} contentHandle file handle of the html content in the assets directory
  */
-export default async function mixinForShadowContent(handle) {
-	const contentMixin = await mixinForContent(handle);
+export default async function mixinForShadowContent(contentHandle) {
+	const contentMixin = await mixinForContent(contentHandle);
 	/**
 	 * @template {GConstructor<HTMLElement>} T
 	 * @param {T} Base
 	 */
-	return (Base) => {
+	return (Base) =>
 		class ShadowContentMixin extends shadowMixin(contentMixin(Base)) {
 			/**
 			 * @param  {...any} args
@@ -20,10 +20,5 @@ export default async function mixinForShadowContent(handle) {
 				super(...args);
 				this.connect(ShadowContentMixin.content);
 			}
-		}
-
-		return /** @type {{ new (): InstanceType<T> & ShadowContentMixin } & typeof ShadowContentMixin} */ (
-			ShadowContentMixin
-		);
-	};
+		};
 }

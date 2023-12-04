@@ -11,7 +11,7 @@ export default async function mixinForLightContent(handle) {
 	 * @template {GConstructor<HTMLElement>} T
 	 * @param {T} Base
 	 */
-	return (Base) => {
+	return (Base) =>
 		class LightContentMixin extends lightMixin(contentMixin(Base)) {
 			/**
 			 * @param  {...any} args
@@ -20,10 +20,5 @@ export default async function mixinForLightContent(handle) {
 				super(...args);
 				this.connect(LightContentMixin.content);
 			}
-		}
-
-		return /** @type {{ new (): InstanceType<T> & LightContentMixin } & typeof LightContentMixin} */ (
-			LightContentMixin
-		);
-	};
+		};
 }

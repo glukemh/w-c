@@ -1,5 +1,6 @@
 import "/components/single-input-form.js";
 import mixinForShadowContent from "/assets/mixin-for-shadow-content.js";
+import preImport from "/assets/pre-import.js";
 import PageRouter from "/components/page-router.js";
 import SingleInputForm from "/components/single-input-form.js";
 
@@ -24,6 +25,7 @@ class JoinRoom extends mixin(HTMLElement) {
 
 	connectedCallback() {
 		this.singleInputForm.addEventListener("submit", this.handleSubmit);
+		preImport(PageRouter.componentRoute("/room"));
 	}
 
 	disconnectedCallback() {

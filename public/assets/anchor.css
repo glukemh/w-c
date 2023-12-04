@@ -1,14 +1,21 @@
 @import url("/assets/focus-ring.css");
 
 a {
-	--_anchor-transition-color: color 0.2s ease;
-	--_anchor-transition-text-decoration-color: text-decoration-color 0.2s ease;
-	--_anchor-transition-text-underline-offset: text-underline-offset 0.2s ease;
+	--_anchor-transition-duration: var(--anchor-transition-duration, 0.2s);
+	--_anchor-transition-property: var(
+		--anchor-transition-property,
+		color,
+		text-decoration-color,
+		text-underline-offset
+	);
+	--_anchor-transition-timing-function: var(
+		--anchor-transition-timing-function,
+		ease
+	);
 	color: var(--color-link-text);
-	cursor: pointer;
-	transition: var(--_anchor-transition-color),
-		var(--_anchor-transition-text-decoration-color),
-		var(--_anchor-transition-text-underline-offset);
+	transition-property: var(--_anchor-transition-property);
+	transition-duration: var(--_anchor-transition-duration);
+	transition-timing-function: var(--_anchor-transition-timing-function);
 	text-underline-offset: 0.25em;
 	text-decoration-color: transparent;
 }

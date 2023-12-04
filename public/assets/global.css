@@ -3,7 +3,7 @@
 
 	--color-accent-color: oklch(80% 0.1592 95.61);
 	--color-accent-color-text: oklch(16% 0.75 56);
-	--color-active-text: oklch(70% 0.11 270);
+	--color-active-text: oklch(80% 0.1592 95.61 / 0.8);
 	--color-button-border: oklch(41.25% 0.04 215);
 	--color-button-face: oklch(41.25% 0.04 215);
 	--color-button-text: oklch(97.92% 0 215);
@@ -14,10 +14,10 @@
 	--color-gray-text: oklch(50% 0 60);
 	--color-highlight: oklch(70% 0 120);
 	--color-highlight-text: oklch(100% 0 120);
-	--color-link-text: oklch(65% 0.5 211);
+	--color-link-text: oklch(91% 0.1592 95.61);
 	--color-mark: oklch(70% 20 120);
 	--color-mark-text: oklch(90% 10 0);
-	--color-visited-text: oklch(70% 0.25 270);
+	--color-visited-text: oklch(80% 0.1592 95.61);
 }
 
 body {
@@ -32,9 +32,9 @@ body {
 
 @media (prefers-color-scheme: light) {
 	:root {
-		--color-accent-color: oklch(71% 0.3 95.61);
+		--color-accent-color: oklch(80% 0.1592 95.61);
 		--color-accent-color-text: oklch(90% 10 0);
-		--color-active-text: oklch(85% 0.42 275);
+		--color-active-text: oklch(85% 0.52 275 / 0.8);
 		--color-button-border: oklch(41.25% 0.04 215);
 		--color-button-face: oklch(41.25% 0.04 215);
 		--color-button-text: oklch(97.92% 0 215);

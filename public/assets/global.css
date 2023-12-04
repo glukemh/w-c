@@ -1,7 +1,7 @@
 :root {
 	block-size: 100%;
 
-	--color-accent-color: oklch(80% 1 109);
+	--color-accent-color: oklch(80% 0.1592 95.61);
 	--color-accent-color-text: oklch(16% 0.75 56);
 	--color-active-text: oklch(70% 0.11 270);
 	--color-button-border: oklch(41.25% 0.04 215);
@@ -32,15 +32,15 @@ body {
 
 @media (prefers-color-scheme: light) {
 	:root {
-		--color-accent-color: oklch(80% 1 109);
+		--color-accent-color: oklch(71% 0.3 95.61);
 		--color-accent-color-text: oklch(90% 10 0);
 		--color-active-text: oklch(85% 0.42 275);
-		--color-button-border: oklch(70% 20 120);
-		--color-button-face: oklch(90% 10 0);
-		--color-button-text: oklch(70% 20 120);
-		--color-canvas: oklch(95% 0.01 56);
-		--color-canvas-text: oklch(0% 0 0);
-		--color-field: oklch(70% 0 120);
+		--color-button-border: oklch(41.25% 0.04 215);
+		--color-button-face: oklch(41.25% 0.04 215);
+		--color-button-text: oklch(97.92% 0 215);
+		--color-canvas: oklch(97% 0 215);
+		--color-canvas-text: oklch(10.09% 0.01 104);
+		--color-field: oklch(91% 0.02 215);
 		--color-field-text: oklch(0% 0 0);
 		--color-gray-text: oklch(50% 0 60);
 		--color-highlight: oklch(70% 0 120);

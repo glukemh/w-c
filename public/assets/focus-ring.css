@@ -1,24 +1,28 @@
 :focus-visible {
+	--_focus-ring-outline-offset: var(--focus-ring-outline-offset, 0.15625em);
+	--_focus-ring-border-radius: var(--focus-ring-border-radius, 0.3125em);
+	--_focus-ring-outline-width: var(--focus-ring-outline-width, 0.09375em);
 	outline-style: solid;
 	outline-color: var(--color-accent-color);
+	animation: focus-visible 0s ease forwards;
 }
 
 @media (prefers-reduced-motion: no-preference) {
 	:focus-visible {
-		animation: focus-visible 0.3s ease forwards;
+		animation-duration: 0.3s;
 	}
 }
 
 @keyframes focus-visible {
 	0% {
 		outline-color: transparent;
-		outline-offset: 0.625em;
+		outline-offset: calc(var(--_focus-ring-outline-offset) * 4);
 		outline-width: 5px;
 	}
 	100% {
 		outline-color: var(--color-accent-color);
-		outline-offset: 2.5px;
-		border-radius: var(--border-radius-focus-ring, 5px);
-		outline-width: 1.5px;
+		outline-offset: var(--_focus-ring-outline-offset);
+		border-radius: var(--_focus-ring-border-radius);
+		outline-width: var(--_focus-ring-outline-width);
 	}
 }

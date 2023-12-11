@@ -1,7 +1,10 @@
 :host {
 	display: grid;
-	grid-template-areas: "header main aside";
-	grid-template-columns: minmax(20%, 1fr) minmax(auto, 120ch) minmax(20%, 1fr);
+	grid-template-areas:
+		"header header aside aside"
+		"...    main   main  ...";
+	grid-template-columns: 12px 1fr min-content 12px;
+	grid-template-rows: auto 1fr;
 	align-items: start;
 	min-block-size: 100cqb;
 }
@@ -22,12 +25,10 @@ aside {
 	top: 0;
 }
 
-@container (inline-size < 120ch) {
+@container (inline-size >= 120ch) {
 	:host {
-		grid-template-areas:
-			"header header aside aside"
-			"...    main   main  ...";
-		grid-template-columns: 12px 1fr min-content 12px;
-		grid-template-rows: auto 1fr;
+		grid-template-areas: "header main aside";
+		grid-template-columns: minmax(20%, 1fr) minmax(auto, 120ch) minmax(20%, 1fr);
+		grid-template-rows: 1fr;
 	}
 }

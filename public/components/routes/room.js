@@ -4,9 +4,10 @@ import "/components/single-input-form.js";
 import mixinForShadowContent from "/assets/mixin-for-shadow-content.js";
 import Room from "/assets/room.js";
 import SingleInputForm from "/components/single-input-form.js";
+import linksWhenLoadedMixin from "/assets/links-when-loaded-mixin.js";
 
 const mixin = await mixinForShadowContent("r-room");
-export default class RRoom extends mixin(HTMLElement) {
+export default class RRoom extends linksWhenLoadedMixin(mixin(HTMLElement)) {
 	roomIdEl = /** @type {HTMLSpanElement} */ (
 		this.shadow.getElementById("room-name")
 	);
@@ -20,6 +21,8 @@ export default class RRoom extends mixin(HTMLElement) {
 	 * @type {Room} room
 	 */
 	room = new Room(new URLSearchParams(location.search).get("id"));
+	linksLoaded = this.linksWhenLoaded(this.shadow);
+
 	connectedCallback() {
 		super.connectedCallback?.();
 		this.roomIdEl.textContent = this.room.id;
@@ -30,6 +33,11 @@ export default class RRoom extends mixin(HTMLElement) {
 			const message = formData.get("message");
 			if (!message) return;
 			this.room.broadcast(message, "message");
+		});
+		this.style.filter = "opacity(0)";
+		this.style.transition = "filter 0.3s ease-in-out";
+		this.linksLoaded.then(() => {
+			this.style.filter = "opacity(1)";
 		});
 	}
 

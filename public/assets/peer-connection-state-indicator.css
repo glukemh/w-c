@@ -1,0 +1,38 @@
+:host {
+	display: inline flow-root;
+	vertical-align: middle;
+	width: 1em;
+	height: 1em;
+	background-color: var(--_color, transparent);
+	border: 1px solid var(--_color, grey);
+	border-radius: 50%;
+}
+
+/*
+Possible connection states:
+"closed" | "connected" | "connecting" | "disconnected" | "failed" | "new"
+*/
+
+:host([title="connected" i]) {
+	--_color: forestgreen;
+}
+
+:host([title="failed" i]) {
+	--_color: crimson;
+}
+
+:host([title="closed" i]) {
+	--_color: darkgray;
+}
+
+:host([title="connecting" i]) {
+	--_color: orange;
+}
+
+:host([title="disconnected" i]) {
+	--_color: darkorange;
+}
+
+:host([title="new" i]) {
+	--_color: rebeccapurple;
+}

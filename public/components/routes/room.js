@@ -1,6 +1,7 @@
 import "/components/main-page.js";
 import "/components/a-route.js";
 import "/components/single-input-form.js";
+import PeerConnectionItem from "/components/peer-connection-item.js";
 import mixinForShadowContent from "/assets/mixin-for-shadow-content.js";
 import Room from "/assets/room.js";
 import SingleInputForm from "/components/single-input-form.js";
@@ -26,8 +27,8 @@ export default class RRoom extends linksWhenLoadedMixin(mixin(HTMLElement)) {
 	connectedCallback() {
 		super.connectedCallback?.();
 		this.roomIdEl.textContent = this.room.id;
-		this.renderPeerNames();
-		this.room.onPeerChange(() => this.renderPeerNames());
+		this.#renderPeerNames();
+		this.room.onPeerChange(() => this.#renderPeerNames());
 		this.broadcastForm.addEventListener("submit", (e) => {
 			const formData = new FormData(this.broadcastForm.form);
 			const message = formData.get("message");
@@ -41,13 +42,31 @@ export default class RRoom extends linksWhenLoadedMixin(mixin(HTMLElement)) {
 		});
 	}
 
-	renderPeerNames() {
-		this.peerListEl.replaceChildren();
-		for (const peerId of this.room.peerIds) {
-			const li = document.createElement("li");
-			li.textContent = peerId;
-			this.peerListEl.appendChild(li);
+	disconnectedCallback() {
+		console.debug("room disconnected");
+		this.room.leave();
+	}
+
+	#renderPeerNames() {
+		for (const [name, peer] of this.room.peers) {
+			if (!this.peerListEl.children.namedItem(name)) {
+				this.#newPeer(name);
+			}
 		}
+	}
+
+	/**
+	 * Handle new peers
+	 * @param {string} peerId
+	 */
+	#newPeer(peerId) {
+		const peer = this.room.peers.get(peerId);
+		if (!peer) return;
+		const peerItem = new PeerConnectionItem();
+		peerItem.peer = peer;
+		peerItem.role = "listitem";
+		peerItem.setAttribute("name", peerId);
+		this.peerListEl.append(peerItem);
 	}
 }
 

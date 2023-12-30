@@ -103,7 +103,10 @@ export default class RoomPeerConnection {
 		});
 		this.messageChannel.addEventListener("close", () => {
 			console.debug("message channel closed");
-			this.peerConnection?.close();
+			if (!this.peerConnection) return;
+			this.peerConnection.close();
+			// Calling close() on the peer will not trigger any events, so manually dispatch connectionstatechange event to notify any listeners
+			this.peerConnection.dispatchEvent(new Event("connectionstatechange"));
 		});
 	}
 
@@ -145,7 +148,6 @@ export default class RoomPeerConnection {
 		 * @param {RTCDataChannelEvent} e
 		 */
 		const onDataChannel = (e) => {
-			console.debug("data channel opened", e.channel.label);
 			this.setDataChannel(e.channel);
 			forwardEvent(e);
 		};
@@ -159,7 +161,11 @@ export default class RoomPeerConnection {
 		 * @param {Event} e
 		 */
 		const onConnectionStateChange = (e) => {
-			console.log("connection state changed: ", peerConnection.connectionState);
+			console.log(
+				"connection state changed: ",
+				this.user,
+				peerConnection.connectionState
+			);
 			forwardEvent(e);
 		};
 		/**
@@ -244,10 +250,14 @@ export default class RoomPeerConnection {
 	 */
 	async answer(offer) {
 		if (!this.peerConnection) return;
-		await this.peerConnection.setRemoteDescription(offer);
-		const answer = await this.peerConnection.createAnswer();
-		await this.peerConnection.setLocalDescription(answer);
-		this.signalOverWs(answer);
+		try {
+			await this.peerConnection.setRemoteDescription(offer);
+			const answer = await this.peerConnection.createAnswer();
+			await this.peerConnection.setLocalDescription(answer);
+			this.signalOverWs(answer);
+		} catch (err) {
+			console.error("error answering", err);
+		}
 	}
 
 	/**
@@ -275,7 +285,7 @@ export default class RoomPeerConnection {
 	 * @param {string} message
 	 */
 	sendMessage(message) {
-		this.#messageChannel.sendData(message);
+		this.messageChannel.sendData(message);
 	}
 
 	/**

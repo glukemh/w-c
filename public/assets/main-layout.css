@@ -17,6 +17,7 @@ header {
 
 main {
 	grid-area: main;
+	align-self: stretch;
 }
 
 aside {

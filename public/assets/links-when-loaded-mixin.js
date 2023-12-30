@@ -26,5 +26,17 @@ export default function linksWhenLoadedMixin(Base) {
 			);
 			return linksArray;
 		}
+
+		/**
+		 * Fades the element in when promise is resolved.
+		 * @param {Promise<any>} promise
+		 */
+		fadeInWhen(promise) {
+			this.style.filter = "opacity(0)";
+			this.style.transition = "filter 0.3s ease-in-out";
+			promise.then(() => {
+				this.style.filter = "opacity(1)";
+			});
+		}
 	};
 }

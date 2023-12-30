@@ -1,6 +1,7 @@
 import "/components/main-page.js";
 import "/components/a-route.js";
 import "/components/single-input-form.js";
+import "/components/room-main-layout.js";
 import PeerConnectionItem from "/components/peer-connection-item.js";
 import mixinForShadowContent from "/assets/mixin-for-shadow-content.js";
 import Room from "/assets/room.js";
@@ -15,17 +16,22 @@ export default class RRoom extends linksWhenLoadedMixin(mixin(HTMLElement)) {
 	peerListEl = /** @type {HTMLUListElement} */ (
 		this.shadow.getElementById("peer-list")
 	);
+	messageSection = /** @type {HTMLElement} */ (
+		this.shadow.getElementById("message")
+	);
 	broadcastForm = /** @type {SingleInputForm} */ (
 		this.shadow.getElementById("broadcast-form")
 	);
 	/**
 	 * @type {Room} room
 	 */
-	room = new Room(new URLSearchParams(location.search).get("id"));
-	linksLoaded = this.linksWhenLoaded(this.shadow);
+	room;
+
+	#linksLoaded = this.linksWhenLoaded(this.shadow);
 
 	connectedCallback() {
 		super.connectedCallback?.();
+		this.room = new Room(new URLSearchParams(location.search).get("id"));
 		this.roomIdEl.textContent = this.room.id;
 		this.#renderPeerNames();
 		this.room.onPeerChange(() => this.#renderPeerNames());
@@ -33,13 +39,9 @@ export default class RRoom extends linksWhenLoadedMixin(mixin(HTMLElement)) {
 			const formData = new FormData(this.broadcastForm.form);
 			const message = formData.get("message");
 			if (!message) return;
-			this.room.broadcast(message, "message");
+			this.room.broadcastMessage(message);
 		});
-		this.style.filter = "opacity(0)";
-		this.style.transition = "filter 0.3s ease-in-out";
-		this.linksLoaded.then(() => {
-			this.style.filter = "opacity(1)";
-		});
+		this.fadeInWhen(this.#linksLoaded);
 	}
 
 	disconnectedCallback() {

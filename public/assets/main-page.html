@@ -1,5 +1,8 @@
 <link rel="stylesheet" href="/assets/main-page.css">
 <main-layout exportparts="nav, main, aside">
-  <main-nav slot="nav"></main-nav>
+  <slot name="nav" slot="nav">
+    <main-nav slot="nav"></main-nav>
+  </slot>
   <slot slot="main"></slot>
+  <slot name="aside" slot="aside"></slot>
 </main-layout>

@@ -11,11 +11,7 @@ export default class RIndex extends linkLoadMixin(mixin(HTMLElement)) {
 	linksLoaded = this.linksWhenLoaded(this.shadow);
 
 	connectedCallback() {
-		this.style.filter = "opacity(0)";
-		this.style.transition = "filter 0.3s ease-in-out";
-		this.linksLoaded.then(() => {
-			this.style.filter = "opacity(1)";
-		});
+		this.fadeInWhen(this.linksLoaded);
 	}
 }
 

@@ -1,11 +1,15 @@
 <link rel="stylesheet" href="/assets/r-room.css">
 <main-page>
-  <nav>
+  <nav slot="nav">
     <a-route href="/">Leave</a-route>
   </nav>
-  <h1 id="room-name"></h1>
-  <single-input-form id="broadcast-form" type="text" input-name="message" placeholder="Message">
-    <span slot="submit">Broadcast</span>
-  </single-input-form>
-  <ul id="peer-list"></ul>
+  <room-main-layout>
+    <h1 slot="heading" id="room-name"></h1>
+    <hr slot="heading">
+    <section slot="messages" id="messages"></section>
+    <single-input-form slot="form" id="broadcast-form" type="text" input-name="message" placeholder="Message">
+      <span slot="submit">Broadcast</span>
+    </single-input-form>
+  </room-main-layout>
+  <ul slot="aside" id="peer-list"></ul>
 </main-page>

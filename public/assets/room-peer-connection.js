@@ -41,8 +41,6 @@ export default class RoomPeerConnection {
 	 */
 	user;
 
-	#connectionChannel = new DataChannel();
-
 	#messageChannel = new DataChannel();
 	get messageChannel() {
 		return this.#messageChannel;
@@ -56,8 +54,7 @@ export default class RoomPeerConnection {
 	 */
 	constructor(user, ws, offer) {
 		this.user = user;
-		this.peerConnection = new RTCPeerConnection(RoomPeerConnection.servers);
-		this.#peerConnectionListeners(offer);
+		this.#instantiatePeerConnection(offer);
 		this.ws = ws;
 		this.wsConnected = new Promise((resolve, reject) => {
 			switch (ws.readyState) {
@@ -76,27 +73,25 @@ export default class RoomPeerConnection {
 			if (typeof e.data !== "string") return;
 			const data = JSON.parse(e.data);
 			if (data.from !== this.user) return;
-			console.debug("message from websocket", data);
 			const { message } = data;
 			switch (message.type) {
 				case "offer":
-					if (this.peerConnection.connectionState === "connected") {
-						const oldConnection = this.peerConnection;
-						this.peerConnection = new RTCPeerConnection(
-							RoomPeerConnection.servers
-						);
-						this.#peerConnectionListeners(message);
-						oldConnection.close();
-					} else {
-						this.answer(/** @type {RTCSessionDescriptionInit} */ (message));
-					}
+					this.#instantiatePeerConnection(message);
 					break;
 				case "answer":
-					this.peerConnection.setRemoteDescription(message);
+					if (!this.peerConnection) {
+						this.#instantiatePeerConnection();
+					} else {
+						this.peerConnection.setRemoteDescription(message);
+					}
 					break;
 				default:
 					if (message.candidate !== undefined) {
-						this.peerConnection.addIceCandidate(message);
+						if (!this.peerConnection) {
+							this.#instantiatePeerConnection();
+						} else {
+							this.peerConnection.addIceCandidate(message);
+						}
 					}
 					break;
 			}
@@ -106,14 +101,9 @@ export default class RoomPeerConnection {
 				alert(e.data);
 			}
 		});
-		this.#connectionChannel.addEventListener("message", (e) => {
-			console.debug("connection channel message", e);
-			if (e instanceof MessageEvent) {
-				if (e.data === RoomPeerConnection.closeMessage) {
-					console.debug("closing connection");
-					this.close();
-				}
-			}
+		this.messageChannel.addEventListener("close", () => {
+			console.debug("message channel closed");
+			this.peerConnection?.close();
 		});
 	}
 
@@ -121,8 +111,10 @@ export default class RoomPeerConnection {
 	 * Adds event listeners and sets the offer. Can be used when the connection needs to be reset
 	 * @param {RTCSessionDescriptionInit} [offer]
 	 */
-	#peerConnectionListeners(offer) {
+	#instantiatePeerConnection(offer) {
 		this.#removePeerConnectionListeners?.();
+		const peerConnection = new RTCPeerConnection(RoomPeerConnection.servers);
+		this.peerConnection = peerConnection;
 
 		/**
 		 * Forward event  helper function
@@ -153,6 +145,7 @@ export default class RoomPeerConnection {
 		 * @param {RTCDataChannelEvent} e
 		 */
 		const onDataChannel = (e) => {
+			console.debug("data channel opened", e.channel.label);
 			this.setDataChannel(e.channel);
 			forwardEvent(e);
 		};
@@ -166,10 +159,7 @@ export default class RoomPeerConnection {
 		 * @param {Event} e
 		 */
 		const onConnectionStateChange = (e) => {
-			console.log(
-				"connection state changed: ",
-				this.peerConnection.connectionState
-			);
+			console.log("connection state changed: ", peerConnection.connectionState);
 			forwardEvent(e);
 		};
 		/**
@@ -179,53 +169,71 @@ export default class RoomPeerConnection {
 			forwardEvent(e);
 		};
 
+		/**
+		 * @param {Event} e
+		 */
+		const onNegotiationNeeded = async (e) => {
+			forwardEvent(e);
+			console.debug("negotiation needed");
+			try {
+				const offer = await peerConnection.createOffer();
+				await peerConnection.setLocalDescription(offer);
+				await this.signalOverWs(peerConnection.localDescription);
+			} catch (err) {
+				console.error("negotiation error", err);
+			}
+		};
+
 		// Set event listeners
-		this.peerConnection.addEventListener(
-			"icecandidateerror",
-			onIceCandidateError
-		);
-		this.peerConnection.addEventListener("icecandidate", onIceCandidate);
-		this.peerConnection.addEventListener("datachannel", onDataChannel);
-		this.peerConnection.addEventListener(
+		peerConnection.addEventListener("icecandidateerror", onIceCandidateError);
+		peerConnection.addEventListener("icecandidate", onIceCandidate);
+		peerConnection.addEventListener("datachannel", onDataChannel);
+		peerConnection.addEventListener(
 			"icegatheringstatechange",
 			onIceGatheringStateChange
 		);
-		this.peerConnection.addEventListener(
+		peerConnection.addEventListener(
 			"connectionstatechange",
 			onConnectionStateChange
 		);
-		this.peerConnection.addEventListener(
+		peerConnection.addEventListener(
 			"signalingstatechange",
 			onSignalingStateChange
 		);
+		peerConnection.addEventListener("negotiationneeded", onNegotiationNeeded);
 
 		// Set remove event listeners function
 		this.#removePeerConnectionListeners = () => {
-			this.peerConnection.removeEventListener(
+			peerConnection.removeEventListener(
 				"icecandidateerror",
 				onIceCandidateError
 			);
-			this.peerConnection.removeEventListener("icecandidate", onIceCandidate);
-			this.peerConnection.removeEventListener("datachannel", onDataChannel);
-			this.peerConnection.removeEventListener(
+			peerConnection.removeEventListener("icecandidate", onIceCandidate);
+			peerConnection.removeEventListener("datachannel", onDataChannel);
+			peerConnection.removeEventListener(
 				"icegatheringstatechange",
 				onIceGatheringStateChange
 			);
-			this.peerConnection.removeEventListener(
+			peerConnection.removeEventListener(
 				"connectionstatechange",
 				onConnectionStateChange
 			);
-			this.peerConnection.removeEventListener(
+			peerConnection.removeEventListener(
 				"signalingstatechange",
 				onSignalingStateChange
 			);
+			peerConnection.removeEventListener(
+				"negotiationneeded",
+				onNegotiationNeeded
+			);
 		};
 
-		// Handle offer
 		if (offer) {
+			// Handle offer
 			this.answer(offer);
 		} else {
-			this.offer();
+			// Create data channel
+			this.setDataChannel(peerConnection.createDataChannel("message"));
 		}
 	}
 
@@ -235,22 +243,11 @@ export default class RoomPeerConnection {
 	 * @returns {Promise<void>}
 	 */
 	async answer(offer) {
+		if (!this.peerConnection) return;
 		await this.peerConnection.setRemoteDescription(offer);
 		const answer = await this.peerConnection.createAnswer();
 		await this.peerConnection.setLocalDescription(answer);
 		this.signalOverWs(answer);
-	}
-
-	/**
-	 * Send an offer to the other user
-	 * @returns {Promise<void>}
-	 */
-	async offer() {
-		this.setDataChannel(this.peerConnection.createDataChannel("message"));
-		this.setDataChannel(this.peerConnection.createDataChannel("connection"));
-		const offer = await this.peerConnection.createOffer();
-		await this.peerConnection.setLocalDescription(offer);
-		this.signalOverWs(offer);
 	}
 
 	/**
@@ -270,9 +267,6 @@ export default class RoomPeerConnection {
 			case "message":
 				this.messageChannel.channel = channel;
 				break;
-			case "connection":
-				this.#connectionChannel.channel = channel;
-				break;
 		}
 	}
 
@@ -288,7 +282,7 @@ export default class RoomPeerConnection {
 	 * Close the connection
 	 */
 	close() {
-		this.#connectionChannel.sendData(RoomPeerConnection.closeMessage);
-		this.peerConnection.close();
+		this.messageChannel.close();
+		this.peerConnection?.close();
 	}
 }

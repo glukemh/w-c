@@ -117,4 +117,11 @@ export default class DataChannel extends EventTarget {
 			this.#sendQueue.push(data);
 		}
 	}
+
+	/**
+	 * Close the channel
+	 */
+	close() {
+		this.#channel?.close();
+	}
 }

@@ -6,6 +6,9 @@
 	background-color: var(--_color, transparent);
 	border: 1px solid var(--_color, grey);
 	border-radius: 50%;
+	transition-property: background-color, border-color;
+	transition-duration: 0.5s;
+	transition-timing-function: ease-in-out;
 }
 
 /*

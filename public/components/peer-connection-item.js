@@ -25,7 +25,14 @@ export default class PeerConnectionItem extends mixin(HTMLElement) {
 		);
 		this.connectionStateIndicator.title = state;
 		if (state === "closed") {
-			setTimeout(() => this.remove(), 1000);
+			setTimeout(() => {
+				if (
+					!this.peer ||
+					this.peer.peerConnection.connectionState === "closed"
+				) {
+					this.remove();
+				}
+			}, 5000);
 		}
 	};
 

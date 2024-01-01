@@ -2,10 +2,11 @@ import "/components/main-page.js";
 import "/components/a-route.js";
 import "/components/single-input-form.js";
 import "/components/room-main-layout.js";
+import RoomMessages from "/components/room-messages.js";
 import PeerConnectionItem from "/components/peer-connection-item.js";
+import SingleInputForm from "/components/single-input-form.js";
 import mixinForShadowContent from "/assets/mixin-for-shadow-content.js";
 import Room from "/assets/room.js";
-import SingleInputForm from "/components/single-input-form.js";
 import linksWhenLoadedMixin from "/assets/links-when-loaded-mixin.js";
 
 const mixin = await mixinForShadowContent("r-room");
@@ -22,6 +23,9 @@ export default class RRoom extends linksWhenLoadedMixin(mixin(HTMLElement)) {
 	broadcastForm = /** @type {SingleInputForm} */ (
 		this.shadow.getElementById("broadcast-form")
 	);
+	roomMessages = /** @type {RoomMessages} */ (
+		this.shadow.getElementById("room-messages")
+	);
 	/**
 	 * @type {Room} room
 	 */
@@ -32,6 +36,7 @@ export default class RRoom extends linksWhenLoadedMixin(mixin(HTMLElement)) {
 	connectedCallback() {
 		super.connectedCallback?.();
 		this.room = new Room(new URLSearchParams(location.search).get("id"));
+		this.roomMessages.room = this.room;
 		this.roomIdEl.textContent = this.room.id;
 		this.#renderPeerNames();
 		this.room.onPeerChange(() => this.#renderPeerNames());
@@ -45,14 +50,19 @@ export default class RRoom extends linksWhenLoadedMixin(mixin(HTMLElement)) {
 	}
 
 	disconnectedCallback() {
-		console.debug("room disconnected");
 		this.room.leave();
 	}
 
 	#renderPeerNames() {
 		for (const [name, peer] of this.room.peers) {
-			if (!this.peerListEl.children.namedItem(name)) {
+			const peerItem = this.peerListEl.children.namedItem(name);
+			if (!peerItem) {
 				this.#newPeer(name);
+			} else if (
+				peerItem instanceof PeerConnectionItem &&
+				peerItem.peer !== peer
+			) {
+				peerItem.peer = peer;
 			}
 		}
 	}

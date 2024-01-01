@@ -96,13 +96,7 @@ export default class RoomPeerConnection {
 					break;
 			}
 		});
-		this.messageChannel.addEventListener("message", (e) => {
-			if (e instanceof MessageEvent) {
-				alert(e.data);
-			}
-		});
 		this.messageChannel.addEventListener("close", () => {
-			console.debug("message channel closed");
 			if (!this.peerConnection) return;
 			this.peerConnection.close();
 			// Calling close() on the peer will not trigger any events, so manually dispatch connectionstatechange event to notify any listeners
@@ -180,7 +174,6 @@ export default class RoomPeerConnection {
 		 */
 		const onNegotiationNeeded = async (e) => {
 			forwardEvent(e);
-			console.debug("negotiation needed");
 			try {
 				const offer = await peerConnection.createOffer();
 				await peerConnection.setLocalDescription(offer);

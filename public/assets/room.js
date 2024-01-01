@@ -79,7 +79,7 @@ export default class Room {
 		const peer = new RoomPeerConnection(...params);
 		this.peers.set(peer.user, peer);
 		peer.connectionEvents.addEventListener("connectionstatechange", () => {
-			if (peer.peerConnection.connectionState === "closed") {
+			if (peer.peerConnection?.connectionState === "closed") {
 				this.peers.delete(peer.user);
 				this.#peersChanged();
 			}
@@ -103,6 +103,17 @@ export default class Room {
 	}
 
 	/**
+	 * Remove peer change callback
+	 * @param {(peers: string[]) => void} callback
+	 */
+	removePeerChangeCallback(callback) {
+		const index = this.#peerChangeCallbacks.indexOf(callback);
+		if (index !== -1) {
+			this.#peerChangeCallbacks.splice(index, 1);
+		}
+	}
+
+	/**
 	 * Broadcast message to all peers
 	 * @param {string} message
 	 */
@@ -115,8 +126,9 @@ export default class Room {
 	leave() {
 		this.ws.close();
 		for (const peer of this.peers.values()) {
-			console.debug("closing peer connection", peer.user);
 			peer.close();
 		}
+		this.#peerChangeCallbacks = [];
+		this.peers.clear();
 	}
 }

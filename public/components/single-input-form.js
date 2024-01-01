@@ -26,6 +26,7 @@ class SingleInputForm extends mixin(HTMLElement) {
 	handleSubmit = (e) => {
 		e.preventDefault();
 		this.dispatchEvent(new SubmitEvent(e.type, e));
+		this.input.value = "";
 	};
 
 	connectedCallback() {

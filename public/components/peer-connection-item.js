@@ -3,7 +3,7 @@ import mixinForShadowContent from "/assets/mixin-for-shadow-content.js";
 
 /**
  * @typedef {import("/components/peer-connection-state-indicator.js").default} PeerConnectionStateIndicator
- * @typedef {import("/assets/room.js").RoomPeerConnection} RoomPeerConnection
+ * @typedef {import("/assets/room-peer-connection").default} RoomPeerConnection
  */
 
 const mixin = await mixinForShadowContent("peer-connection-item");
@@ -18,18 +18,10 @@ export default class PeerConnectionItem extends mixin(HTMLElement) {
 	 */
 	#peer;
 	#connectionStateChangeCallback = () => {
-		const state = this.peer?.peerConnection.connectionState || null;
-		console.debug(
-			"connection state changed (from peer-connection-item)",
-			state
-		);
-		this.connectionStateIndicator.title = state;
-		if (state === "closed") {
+		this.connectionStateIndicator.title = this.connectionState || "";
+		if (this.connectionState === "closed") {
 			setTimeout(() => {
-				if (
-					!this.peer ||
-					this.peer.peerConnection.connectionState === "closed"
-				) {
+				if (!this.peer || this.connectionState === "closed") {
 					this.remove();
 				}
 			}, 5000);
@@ -45,7 +37,7 @@ export default class PeerConnectionItem extends mixin(HTMLElement) {
 	}
 
 	get connectionState() {
-		return this.peer?.peerConnection.connectionState || null;
+		return this.peer.peerConnection?.connectionState || null;
 	}
 
 	connectedCallback() {

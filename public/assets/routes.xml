@@ -1,0 +1,6 @@
+<element name="layout-index">
+  <route path="room">
+    <element name="room-main" slot="main" query="room-id">
+    </element>
+  </route>
+</element>

@@ -1,6 +1,13 @@
 <element name="layout-index">
   <route path="room">
-    <element name="room-main" slot="main" query="room-id">
-    </element>
+    <route param="id">
+      <element name="room-main">
+        <attribute name="slot">main</attribute>
+        <attribute name="room-id" param-var="id"></attribute>
+      </element>
+    </route>
   </route>
 </element>
+<route path="another-page">
+  <element name="another-page"></element>
+</route>

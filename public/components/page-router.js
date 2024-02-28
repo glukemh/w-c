@@ -1,8 +1,10 @@
 import lightMixin from "/assets/light-mixin.js";
 
-/**
- * @typedef {typeof customElements & { getName: (constructor: typeof HTMLElement) => string }} CustomElementsWithGetName
- */
+const response = await fetch("/assets/routes.xml");
+const raw = await response.text();
+const parser = new DOMParser();
+const xmlDoc = parser.parseFromString(raw, "text/xml");
+console.log(xmlDoc);
 
 export default class PageRouter extends lightMixin(HTMLElement) {
 	/**
@@ -49,12 +51,7 @@ export default class PageRouter extends lightMixin(HTMLElement) {
 		const { default: constructor } = await import(
 			PageRouter.currentComponentRoute
 		);
-		this.connect(
-			document.createElement(
-				/** @type {CustomElementsWithGetName} */
-				(customElements).getName(constructor)
-			)
-		);
+		this.connect(document.createElement(customElements.getName(constructor)));
 	}
 }
 

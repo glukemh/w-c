@@ -1,0 +1,17 @@
+{
+	"short_name": "Room Number",
+	"name": "Room Number",
+	"icons": [
+		{
+			"src": "/assets/icon-n.svg",
+			"type": "image/svg+xml",
+			"sizes": "any"
+		}
+	],
+	"start_url": "/",
+	"background_color": "#1b1b1b",
+	"display": "standalone",
+	"scope": "/",
+	"theme_color": "#315159",
+	"description": "Connect to rooms and share messages peer-to-peer."
+}

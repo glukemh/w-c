@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 
 const cacheName = "v1";
-const urlsToCache = ["/assets/r-index.html", "/assets/global.css"];
+const staticResources = ["/", "/assets/app.js", "/assets/icon-n.svg"];
 
 self.addEventListener("install", (/** @type {ExtendableEvent} */ event) => {
 	event.waitUntil(cacheUrls());
@@ -20,7 +20,7 @@ self.addEventListener("activate", (/** @type {ExtendableEvent} */ event) => {
  */
 async function cacheUrls() {
 	const cache = await caches.open(cacheName);
-	await cache.addAll(urlsToCache);
+	await cache.addAll(staticResources);
 }
 
 /**

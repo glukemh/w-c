@@ -9,8 +9,11 @@ export default class State {
 
 	/** @param {T} state */
 	set state(state) {
-		this.state = state;
-		this.#subscribers.forEach((subscriber) => subscriber(state));
+		this.#state = state;
+		this.#subscribers.forEach((subscriber) => {
+			console.debug("callback", subscriber, state);
+			subscriber(state);
+		});
 	}
 
 	get state() {

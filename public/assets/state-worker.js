@@ -28,6 +28,9 @@ self.addEventListener("message", async function (event) {
 		port.onmessage = ({ data }) => {
 			stateInstance.state = data;
 		};
+
+		console.debug("state", stateInstance.state);
+		port.postMessage(stateInstance.state);
 	} catch (error) {
 		console.error(`Error occurred in channel ${path}:`, error);
 		port.close();

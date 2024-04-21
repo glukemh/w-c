@@ -1,4 +1,4 @@
-const worker = new Worker("/assets/state-worker.js");
+const worker = new Worker("/assets/state-worker.js", { type: "module" });
 
 /** @param {ErrorEvent} event */
 worker.onerror = (event) => {

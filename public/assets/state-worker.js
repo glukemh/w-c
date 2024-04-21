@@ -9,15 +9,24 @@ self.addEventListener("message", async function (event) {
 	ports.get(path)?.close();
 	ports.set(path, port);
 	try {
-		const { default: state } = await import(path);
-		if (!(state instanceof State)) {
+		const { default: stateInstance } = await import(path);
+		if (!(stateInstance instanceof State)) {
 			throw new Error("Default export is not an instance of State.");
 		}
 
-		state.onChange = port.postMessage;
+		const unsubscribe = stateInstance.subscribe((state) => {
+			try {
+				port.postMessage(state);
+			} catch (error) {
+				console.error(`Error occurred in channel ${path}:`, error);
+				port.close();
+				ports.delete(path);
+				unsubscribe();
+			}
+		});
 
 		port.onmessage = ({ data }) => {
-			state.setState(data);
+			stateInstance.state = data;
 		};
 	} catch (error) {
 		console.error(`Error occurred in channel ${path}:`, error);

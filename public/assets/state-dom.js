@@ -14,17 +14,6 @@ const portStates = new Map();
  * @param {(state: T) => void} callback
  */
 export default function subscribe(modulePath, callback) {
-	/** @param {MessageEvent<T>} event */
-	const handler = ({ data }) => {
-		const portState = portStates.get(modulePath);
-		if (portState) {
-			portState.state = data;
-		} else {
-			console.error(`No port state found for module ${modulePath}`);
-		}
-		callback(data);
-	};
-
 	let portState = portStates.get(modulePath);
 	if (portState) {
 		// callback with the current state immediately if it exists
@@ -41,6 +30,11 @@ export default function subscribe(modulePath, callback) {
 		};
 	}
 	const { port } = portState;
+	/** @param {MessageEvent<T>} event */
+	const handler = ({ data }) => {
+		portState.state = data;
+		callback(data);
+	};
 	// event listener for state updates
 	port.addEventListener("message", handler);
 
@@ -50,7 +44,13 @@ export default function subscribe(modulePath, callback) {
 		},
 		/** @param {T} state */
 		update(state) {
-			port.postMessage(state);
+			try {
+				port.postMessage(state);
+			} catch (error) {
+				console.error(`Error occurred in channel ${modulePath}:`, error);
+				port.close();
+				portStates.delete(modulePath);
+			}
 		},
 	};
 }

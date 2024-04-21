@@ -1,10 +1,16 @@
 import lightMixin from "/assets/light-mixin.js";
 
-const response = await fetch("/assets/routes.xml");
-const raw = await response.text();
-const parser = new DOMParser();
-const xmlDoc = parser.parseFromString(raw, "text/xml");
-console.log(xmlDoc);
+const response = await fetch("/assets/comp.xsl");
+const rawXSLT = await response.text();
+const processor = new XSLTProcessor();
+const xslt = new DOMParser().parseFromString(rawXSLT, "text/xml");
+processor.importStylesheet(xslt);
+const output = processor.transformToFragment(
+	document.implementation.createDocument("", "", null),
+	document
+);
+console.debug(output);
+document.body.appendChild(output);
 
 export default class PageRouter extends lightMixin(HTMLElement) {
 	/**

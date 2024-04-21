@@ -5,8 +5,8 @@ worker.onerror = (event) => {
 	console.error("Error occurred in state worker:", event.message, event.error);
 };
 
-/** @type {Map<string, { channel: MessageChannel, state?: any }>} */
-const channels = new Map();
+/** @type {Map<string, { port: MessagePort, state?: any }>} */
+const portStates = new Map();
 
 /**
  * @template T
@@ -16,29 +16,31 @@ const channels = new Map();
 export default function subscribe(modulePath, callback) {
 	/** @param {MessageEvent<T>} event */
 	const handler = ({ data }) => {
-		const channelState = channels.get(modulePath);
-		if (channelState) {
-			channelState.state = data;
+		const portState = portStates.get(modulePath);
+		if (portState) {
+			portState.state = data;
+		} else {
+			console.error(`No port state found for module ${modulePath}`);
 		}
 		callback(data);
 	};
 
-	let channelState = channels.get(modulePath);
-	if (channelState) {
+	let portState = portStates.get(modulePath);
+	if (portState) {
 		// callback with the current state immediately if it exists
-		if (typeof channelState.state !== "undefined") {
-			callback(channelState.state);
+		if (typeof portState.state !== "undefined") {
+			callback(portState.state);
 		}
 	} else {
-		const channel = new MessageChannel();
-		channelState = { channel };
-		channels.set(modulePath, channelState);
-		worker.postMessage(modulePath, [channel.port2]);
-		channel.port1.onmessageerror = (event) => {
+		const { port1, port2 } = new MessageChannel();
+		portState = { port: port1 };
+		portStates.set(modulePath, portState);
+		worker.postMessage(modulePath, [port2]);
+		portState.port.onmessageerror = (event) => {
 			console.error(`Error occurred in channel ${modulePath}:`, event);
 		};
 	}
-	const port = channelState.channel.port1;
+	const { port } = portState;
 	// event listener for state updates
 	port.addEventListener("message", handler);
 

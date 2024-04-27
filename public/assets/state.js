@@ -11,7 +11,6 @@ export default class State {
 	set state(state) {
 		this.#state = state;
 		this.#subscribers.forEach((subscriber) => {
-			console.debug("callback", subscriber, state);
 			subscriber(state);
 		});
 	}
@@ -31,6 +30,7 @@ export default class State {
 	 * @returns {() => boolean} unsubscribes from further state changes
 	 */
 	subscribe(subscriber) {
+		subscriber(this.#state);
 		this.#subscribers.add(subscriber);
 		return () => this.#subscribers.delete(subscriber);
 	}

@@ -2,36 +2,35 @@
  * @template T
  */
 export default class State {
-	/** @type {Set<(state: T) => void>} */
-	#subscribers = new Set();
 	/** @type {T} */
-	#state;
+	#current;
+	#next = Promise.withResolvers();
 
-	/** @param {T} state */
-	set state(state) {
-		this.#state = state;
-		this.#subscribers.forEach((subscriber) => {
-			subscriber(state);
-		});
+	/** @param {T} initial */
+	constructor(initial) {
+		this.#current = initial;
 	}
 
-	get state() {
-		return this.#state;
+	/** Returns and async generator that yields state changes. */
+	async *subscribe() {
+		while (true) {
+			yield this.#current;
+			await this.#next.promise;
+		}
 	}
 
-	/** @param {T} state */
-	constructor(state) {
-		this.#state = state;
+	/** Set the state and notify subscribers.
+	 * @param {T} state */
+	set(state) {
+		this.#current = state;
+		const { resolve } = this.#next;
+		this.#next = Promise.withResolvers();
+		resolve(this.#current);
 	}
 
-	/**
-	 * Subscribe to state changes.
-	 * @param {(state: T) => void} subscriber callback to be called when state changes
-	 * @returns {() => boolean} unsubscribes from further state changes
-	 */
-	subscribe(subscriber) {
-		subscriber(this.#state);
-		this.#subscribers.add(subscriber);
-		return () => this.#subscribers.delete(subscriber);
+	/** Set state based on the current value.
+	 * @param {(state: T) => T} updater function called with current state. */
+	update(updater) {
+		this.set(updater(this.#current));
 	}
 }

@@ -1,24 +1,20 @@
 import State from "/assets/state.js";
-
-const id = new URLSearchParams(location.search).get("id") || "";
-
-/** @extends {State<string>} */
+/**
+ * @extends {State<string>}
+ */
 class RoomIdState extends State {
-	/** @param {string} state */
-	set state(state) {
-		const search = new URLSearchParams(location.search);
-		if (state) {
-			search.set("id", state);
-		} else {
-			search.delete("id");
-		}
-		history.replaceState(null, "", `${location.pathname}?${search}`);
-		super.state = state;
-	}
-
 	constructor() {
-		super(id);
+		super(new URLSearchParams(location.search).get("id") || "");
+		window.addEventListener("popstate", () => {
+			super.set(new URLSearchParams(location.search).get("id") || "");
+		});
+	}
+	/** @param {string} roomId */
+	set(roomId) {
+		super.set(roomId);
+		const searchParams = new URLSearchParams(location.search);
+		searchParams.set("id", roomId);
+		history.pushState(null, "", "?" + searchParams.toString());
 	}
 }
-
 export default new RoomIdState();

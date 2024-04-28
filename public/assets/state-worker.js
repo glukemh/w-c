@@ -8,31 +8,32 @@ self.addEventListener("message", async function (event) {
 	const [port] = event.ports;
 	ports.get(path)?.close();
 	ports.set(path, port);
+	/** @type {AsyncGenerator<any, void, unknown> | undefined} */
+	let iter;
 	try {
 		const { default: stateInstance } = await import(path);
 		if (!(stateInstance instanceof State)) {
 			throw new Error("Default export is not an instance of State.");
 		}
-
-		const unsubscribe = stateInstance.subscribe((state) => {
-			try {
-				port.postMessage(state);
-			} catch (error) {
-				console.error(`Error occurred in channel ${path}:`, error);
-				port.close();
-				ports.delete(path);
-				unsubscribe();
-			}
-		});
-
+		iter = stateInstance.subscribe();
+		relayState(port, iter);
 		port.onmessage = ({ data }) => {
-			stateInstance.state = data;
+			stateInstance.set(data);
 		};
-
-		console.debug("state", stateInstance.state);
-		port.postMessage(stateInstance.state);
 	} catch (error) {
 		console.error(`Error occurred in channel ${path}:`, error);
 		port.close();
+		iter?.return();
 	}
 });
+
+/**
+ *
+ * @param {MessagePort} port
+ * @param {AsyncGenerator} iter
+ */
+async function relayState(port, iter) {
+	for await (const state of iter) {
+		port.postMessage(state);
+	}
+}

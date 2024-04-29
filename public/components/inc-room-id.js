@@ -4,7 +4,7 @@ import {
 	resetElement,
 	cloneAttributes,
 	cloneContent,
-} from "/assets/element-helpers.js";
+} from "/assets/dom-helpers.js";
 
 export default class IncRoomId extends HTMLElement {
 	static get observedAttributes() {

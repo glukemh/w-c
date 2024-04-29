@@ -62,9 +62,3 @@ export function cloneAttributes(element, prefix = "", removePrefix = false) {
 			return clone;
 		});
 }
-
-/** List of cloned child nodes from parent node.
- * @param {Node} node node to clone content */
-export function cloneContent(node) {
-	return [...node.cloneNode(true).childNodes];
-}

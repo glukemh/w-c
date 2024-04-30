@@ -7,18 +7,25 @@
   <title>Room Number</title>
   <link rel="icon" href="assets/icon-n.svg" />
   <link rel="manifest" href="manifest.json">
-  <script src="assets/app.js" type="module"></script>
   <link rel="stylesheet" href="assets/global.css">
+  <script src="assets/app.js" type="module"></script>
   <script src="components/room-id.js" type="module"></script>
-  <script src="components/inc-room-id.js" type="module"></script>
+  <script src="components/room-message-list.js" type="module"></script>
+  <script src="components/form-send-room-message.js" type="module"></script>
+  <script src="components/peer-status-list.js" type="module"></script>
+  <template id="room-message"></template>
 </head>
 
 <body>
+  <nav>
+    <a href="/">Leave</a>
+  </nav>
   <h1>Room: <room-id></room-id></h1>
-  <template id="inc-button" data-style="background: lightgreen;">
-    increment
-  </template>
-  <inc-room-id btn="inc-button"></inc-room-id>
+  <room-message-list message="room-message"></room-message-list>
+  <form-send-message-room></form-send-message-room>
+  <aside>
+    <peer-status-list></peer-status-list>
+  </aside>
 </body>
 
 </html>

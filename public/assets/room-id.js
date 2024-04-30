@@ -2,7 +2,7 @@ import State from "/assets/state.js";
 /**
  * @extends {State<string>}
  */
-class RoomIdState extends State {
+class RoomId extends State {
 	constructor() {
 		super(new URLSearchParams(location.search).get("id") || "");
 		window.addEventListener("popstate", () => {
@@ -17,4 +17,4 @@ class RoomIdState extends State {
 		history.pushState(null, "", "?" + searchParams.toString());
 	}
 }
-export default new RoomIdState();
+export const roomId = new RoomId();

@@ -7,12 +7,14 @@
   <title>Room Number</title>
   <link rel="icon" href="assets/icon-n.svg" />
   <link rel="manifest" href="manifest.json">
-  <script src="assets/app.js" type="module"></script>
   <link rel="stylesheet" href="assets/global.css">
+  <script src="assets/app.js" type="module"></script>
+  <script src="components/room-id.js" type="module"></script>
+  <script src="components/inc-room-id.js" type="module"></script>
 </head>
 
 <body>
-  <h1>Room Number</h1>
+  <h1>Room Number <room-id></room-id></h1>
   <form action="/room" method="get">
     <label for="input">
       Enter a room
@@ -20,6 +22,11 @@
     <input id="input" type="text" name="id" placeholder="271828" required>
     <button type="submit">Join</button>
   </form>
+  <inc-room-id btn>
+    <template name="btn">
+      Increment <room-id></room-id>
+    </template>
+  </inc-room-id>
 </body>
 
 </html>

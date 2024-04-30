@@ -1,20 +1,13 @@
-import roomIdState from "/assets/room-id-state.js";
+import { roomId } from "/assets/room-id.js";
+import { useStateMixin } from "/assets/use-state-mixin.js";
 
-export default class RoomId extends HTMLElement {
-	#disconnect = () => {};
+export default class RoomId extends useStateMixin(HTMLElement) {
 	text = new Text();
-	async connectedCallback() {
-		const iter = roomIdState.subscribe();
+	connectedCallback() {
 		this.append(this.text);
-		this.#disconnect = () => {
-			iter.return();
-		};
-		for await (const roomId of iter) {
-			this.text.data = roomId;
-		}
-	}
-	disconnectedCallback() {
-		this.#disconnect();
+		this.subscribe(roomId, (id) => {
+			this.text.data = id;
+		});
 	}
 }
 

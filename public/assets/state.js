@@ -28,6 +28,11 @@ export default class State {
 		resolve(this.#current);
 	}
 
+	/** Get current state. */
+	get() {
+		return this.#current;
+	}
+
 	/** Set state based on the current value.
 	 * @param {(state: T) => T} updater function called with current state. */
 	update(updater) {

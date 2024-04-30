@@ -19,7 +19,18 @@ export const templateBindMixin = (Base) => {
 
 			const { element, lockedAttributes, lockedChildren } = elementContent;
 			const attrValue = this.getAttribute(attrName);
-			const template = attrValue ? templateById(this, attrValue) : null;
+			/** @type { HTMLTemplateElement | null} */
+			let template = null;
+			if (attrValue !== null) {
+				if (attrValue) {
+					template = templateById(this, attrValue);
+				} else {
+					const child = this.children.namedItem(attrName);
+					if (child instanceof HTMLTemplateElement) {
+						template = child;
+					}
+				}
+			}
 
 			if (template) {
 				for (const attr of cloneAttributes(template, "data-", true)) {
@@ -47,30 +58,38 @@ export const templateBindMixin = (Base) => {
 		}
 
 		connectedCallback() {
+			super["connectedCallback"]?.();
 			for (const attrName of this.#elements.keys()) {
 				this.#templateFromAttr(attrName);
 			}
 		}
 
 		/**
-		 * Map an attribute name to an element. This element's attribute value will be used to find a template
-		 * by id, setting the argument element's attributes based on the templates data attributes and setting
-		 * the argument element's child nodes based on the template's content. If no template exists or the
-		 * attribute value is null, attribute and child nodes will be removed. Attributes nodes that exist on
-		 * the argument element when this function is called will not be replaced. If the argument element has
-		 * any child nodes when this function is called, they will not be replaced.
+		 * Map an attribute name to an element. The invoking element's attribute value will be used to find a
+		 * template by id, setting the argument element's attributes based on the templates data attributes and
+		 * setting the argument element's child nodes based on the template's content. If no template exists or
+		 * the attribute value is null, attribute and child nodes will be removed. Attributes nodes that exist
+		 * on the argument element when this function is called will not be replaced. If the argument element
+		 * has any child nodes when this function is called, they will not be replaced.
 		 * @template {Element} T
+		 * @param {string} attrName The invoking element's attribute name used to find the template
 		 * @param {T} element The element will have attributes and children set from the template
-		 * @param {string} attrName The attribute name used to find the template
-		 * @returns {T} returns the element
+		 * @param {object} [options]
+		 * @param {string[]} [options.lockedAttributes] An array of the argument element's attribute names that
+		 * will not be removed
+		 * @param {boolean} [options.lockedChildren] If true, the argument element's children will not be
+		 * removed
+		 * @returns {T} returns the argument element
 		 */
-		lock(element, attrName) {
+		lock(attrName, element, options = {}) {
+			const {
+				lockedAttributes = [...element.attributes].map((attr) => attr.name),
+				lockedChildren = element.hasChildNodes(),
+			} = options;
 			this.#elements.set(attrName, {
 				element,
-				lockedAttributes: new Set(
-					[...element.attributes].map((attr) => attr.name)
-				),
-				lockedChildren: element.hasChildNodes(),
+				lockedAttributes: new Set(lockedAttributes),
+				lockedChildren,
 			});
 			return element;
 		}
@@ -81,6 +100,7 @@ export const templateBindMixin = (Base) => {
 		 * @param {string | null} _newValue
 		 */
 		attributeChangedCallback(name, _oldValue, _newValue) {
+			super["attributeChangedCallback"]?.(name, _oldValue, _newValue);
 			this.#templateFromAttr(name);
 		}
 	}

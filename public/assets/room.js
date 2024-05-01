@@ -1,5 +1,5 @@
 import RoomPeerConnection from "/assets/room-peer-connection.js";
-import UID from "/assets/uid.js";
+import { uid } from "/assets/uid.js";
 export default class Room {
 	/**
 	 * @type {((peers: string[]) => void)[]}
@@ -26,7 +26,7 @@ export default class Room {
 		this.id = id;
 		const url = new URL(`/api/room/${id}`, location.origin);
 		url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
-		url.searchParams.set("uid", UID);
+		url.searchParams.set("uid", uid.get());
 		this.ws = new WebSocket(url);
 		this.ws.addEventListener("open", (e) => {
 			console.log("Connected to room");

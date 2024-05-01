@@ -1,15 +1,25 @@
 import State, { forAwait } from "/assets/state.js";
+import { uid } from "/assets/uid.js";
 import { roomId } from "/assets/room-id.js";
 
 /** @extends {State<WebSocket | null>} */
 class RoomWebsocketConnection extends State {
 	constructor() {
 		super(null);
-		forAwait(roomId.subscribe(), (roomId) => {
-			this.get()?.close();
-			const ws = roomId ? new WebSocket(`/api/room/${roomId}`) : null;
-			this.set(ws);
-		});
+		const iter = roomId.subscribe();
+		iter.next();
+		[iter, uid.subscribe()].forEach((iter) =>
+			forAwait(iter, () => {
+				this.get()?.close();
+				if (roomId.get()) {
+					const url = new URL(`/api/room/${roomId.get()}`, location.origin);
+					url.searchParams.set("uid", uid.get());
+					this.set(new WebSocket(url));
+				} else {
+					this.set(null);
+				}
+			})
+		);
 	}
 }
 

@@ -39,3 +39,14 @@ export default class State {
 		this.set(updater(this.#current));
 	}
 }
+
+/**
+ * @template T
+ * @param {ReturnType<State<T>['subscribe']>} iter
+ * @param {(state: T) => void} callback
+ */
+export const forAwait = async (iter, callback) => {
+	for await (const value of iter) {
+		callback(value);
+	}
+};

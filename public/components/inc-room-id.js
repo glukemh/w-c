@@ -1,16 +1,12 @@
 import { roomId } from "/assets/room-id.js";
-import TemplateBindElement from "/assets/template-bind-element.js";
-export default class IncRoomId extends TemplateBindElement {
-	static get observedAttributes() {
-		return ["btn"];
-	}
-	button = document.createElement("button");
+import ShadowSlotElement from "/assets/shadow-slot-mixin.js";
+export default class IncRoomId extends ShadowSlotElement {
 	constructor() {
 		super();
-		this.button.addEventListener("click", () => {
+		const { el } = this.shadowSlot("button");
+		el.onclick = () => {
 			roomId.update((roomId) => (parseInt(roomId) + 1).toString());
-		});
-		this.lock("btn", this.button);
+		};
 	}
 }
 

@@ -14,6 +14,36 @@
 <body>
   <page-layer>
     <template shadowrootmode="open">
+      <style>
+        @import url("assets/focus-ring.css") layer(base);
+        @import url("assets/input.css") layer(base);
+        @import url("assets/button.css") layer(base);
+
+        form {
+          line-height: 3.5em;
+        }
+
+        form>* {
+          display: inline flow-root;
+          margin-inline: 0.2em;
+          vertical-align: bottom;
+        }
+
+        input {
+          text-align: inherit;
+        }
+
+        label {
+          display: inline flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          line-height: 1em;
+        }
+
+        label input {
+          flex-basis: 100%;
+        }
+      </style>
       <h1>Room Number</h1>
       <form action="/room" method="get">
         <label for="input">

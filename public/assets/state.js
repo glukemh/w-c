@@ -3,20 +3,33 @@
  */
 export class State {
 	/** @type {PromiseWithResolvers<T>} */
-	#nextState = Promise.withResolvers();
+	#currentState = Promise.withResolvers();
+	#nextState = this.#currentState;
+	#source;
+	/** @protected */
+	get source() {
+		return this.#source;
+	}
+	constructor() {
+		this.#source = source(this);
+		this.#source.next();
 
-	/**
-	 * @protected
-	 * @param {T} value */
-	next(value) {
-		const { resolve } = this.#nextState;
-		this.#nextState = Promise.withResolvers();
-		resolve(value);
+		/** @type {(that: State) => Generator<void, void, T>} */
+		function* source(that) {
+			while (true) {
+				that.#nextState.resolve(yield);
+				that.#currentState = that.#nextState;
+				that.#nextState = Promise.withResolvers();
+			}
+		}
 	}
 
 	async *subscribe() {
+		await this.#currentState.promise;
+		yield this.#currentState.promise;
 		while (true) {
-			yield await this.#nextState.promise;
+			await this.#nextState.promise;
+			yield this.#currentState.promise;
 		}
 	}
 }
@@ -105,22 +118,39 @@ export class PromiseState extends InitialState {
 
 /**
  * @template T
- * @extends {InitialState<T>}
+ * @extends {State<T>}
  */
-export class MutableState extends InitialState {
+export class MutableState extends State {
 	/** Set the state and notify subscribers.
 	 * @param {T} state */
 	set(state) {
-		this.next(state);
+		this.source.next(state);
 	}
 
 	/** Set state based on the current value.
 	 * @param {(state: T) => T} updater function called with current state. */
-	update(updater) {
-		this.set(updater(this.get()));
+	async update(updater) {
+		for await (const state of this.subscribe()) {
+			this.set(updater(state));
+			break;
+		}
 	}
 }
 
+let s = new MutableState();
+(async () => {
+	for await (const value of s.subscribe()) {
+		console.log("value", value);
+	}
+})();
+console.log("set");
+s.set(1);
+s.set(2);
+s.set(3);
+setTimeout(() => s.set(4), 1000);
+// s.update((n) => n + 1);
+// s.update((n) => n + 1);
+// s.update((n) => n + 1);
 /**
  * @template T
  * @param {ReturnType<State<T>['subscribe']>} iter

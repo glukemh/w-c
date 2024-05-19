@@ -1,17 +1,18 @@
-import State from "/assets/state.js";
+import { State } from "/assets/state.js";
 /**
  * @extends {State<string>}
  */
 class RoomId extends State {
+	#current = new URLSearchParams(location.search).get("id") || "";
 	constructor() {
-		super(new URLSearchParams(location.search).get("id") || "");
+		super();
+		this.resolve(this.#current);
 		window.addEventListener("popstate", () => {
-			super.set(new URLSearchParams(location.search).get("id") || "");
+			this.resolve(new URLSearchParams(location.search).get("id") || "");
 		});
 	}
 	/** @param {string} roomId */
 	set(roomId) {
-		super.set(roomId);
 		const searchParams = new URLSearchParams(location.search);
 		searchParams.set("id", roomId);
 		history.pushState(null, "", "?" + searchParams.toString());

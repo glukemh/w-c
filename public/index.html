@@ -7,53 +7,45 @@
   <title>Room Number</title>
   <link rel="icon" href="assets/icon-n.svg" />
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="assets/global.css">
   <script src="assets/app.js" type="module"></script>
+  <style>
+    @import url("assets/global.css") layer(base);
+    @import url("assets/focus-ring.css") layer(base);
+    @import url("assets/input.css") layer(base);
+    @import url("assets/button.css") layer(base);
+
+    body {
+      display: grid;
+      align-content: center;
+      justify-items: center;
+    }
+
+    form {
+      display: grid;
+      justify-items: start;
+      gap: 0.5em;
+      line-height: 3.5em;
+    }
+
+    form> :first-child {
+      grid-column: span 2;
+    }
+
+    label {
+      line-height: 1em;
+    }
+  </style>
 </head>
 
 <body>
-  <page-layer>
-    <template shadowrootmode="open">
-      <style>
-        @import url("assets/focus-ring.css") layer(base);
-        @import url("assets/input.css") layer(base);
-        @import url("assets/button.css") layer(base);
-
-        form {
-          line-height: 3.5em;
-        }
-
-        form>* {
-          display: inline flow-root;
-          margin-inline: 0.2em;
-          vertical-align: bottom;
-        }
-
-        input {
-          text-align: inherit;
-        }
-
-        label {
-          display: inline flex;
-          gap: 8px;
-          flex-wrap: wrap;
-          line-height: 1em;
-        }
-
-        label input {
-          flex-basis: 100%;
-        }
-      </style>
-      <h1>Room Number</h1>
-      <form action="/room" method="get">
-        <label for="input">
-          Enter a room
-        </label>
-        <input id="input" type="text" name="id" placeholder="271828" required>
-        <button type="submit">Join</button>
-      </form>
-    </template>
-  </page-layer>
+  <h1>Room Number</h1>
+  <form action="/room" method="get">
+    <label for="input">
+      Enter a room
+    </label>
+    <input id="input" type="text" name="id" placeholder="271828" required>
+    <button type="submit">Join</button>
+  </form>
 </body>
 
 </html>

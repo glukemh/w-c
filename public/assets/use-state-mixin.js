@@ -1,6 +1,6 @@
 /**
- * @template {new (...args: any[]) => any} T
- * @param {T} Base
+ * @template {new (...args: any[]) => any} B
+ * @param {B} Base
  */
 export const useStateMixin = (Base) => {
 	/** @extends {Base} */
@@ -9,7 +9,7 @@ export const useStateMixin = (Base) => {
 		/**
 		 * Call callback on each state change. Returns on disconnectedCallback.
 		 * @template T
-		 * @param {import('/assets/state.js').default<T>} state
+		 * @param {import('/assets/state.js').State<T>} state
 		 * @param {(value: T) => void} callback
 		 */
 		async subscribe(state, callback) {

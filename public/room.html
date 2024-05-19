@@ -7,20 +7,19 @@
   <title>Room Number</title>
   <link rel="icon" href="assets/icon-n.svg" />
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="assets/global.css">
   <script src="assets/app.js" type="module"></script>
   <script src="components/room-id.js" type="module"></script>
   <script src="components/room-message-list.js" type="module"></script>
   <script src="components/form-send-room-message.js" type="module"></script>
   <script src="components/peer-status-list.js" type="module"></script>
-  <template id="room-message"></template>
+  <style>
+    @import "assets/global.css" layer(base);
+    @import "assets/anchor.css" layer(base);
+  </style>
 </head>
 
 <body>
-  <nav>
-    <a href="/">Leave</a>
-  </nav>
-  <h1>Room: <room-id></room-id></h1>
+  <h1><room-id></room-id></h1>
   <room-message-list message="room-message"></room-message-list>
   <form-send-message-room></form-send-message-room>
   <aside>

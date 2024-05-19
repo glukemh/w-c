@@ -49,7 +49,7 @@ export class MutableState extends State {
 		if (!this.#task) {
 			this.#task = async () => {
 				for await (const value of this.subscribe()) {
-					this.resolve(this.#composite(value));
+					this.set(this.#composite(value));
 					this.#task = null;
 					this.#composite = (state) => state;
 					break;

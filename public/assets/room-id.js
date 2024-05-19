@@ -1,14 +1,13 @@
-import { State } from "/assets/state.js";
+import { MutableState } from "/assets/state.js";
 /**
- * @extends {State<string>}
+ * @extends {MutableState<string>}
  */
-class RoomId extends State {
-	#current = new URLSearchParams(location.search).get("id") || "";
+class RoomId extends MutableState {
 	constructor() {
 		super();
-		this.resolve(this.#current);
+		super.set(new URLSearchParams(location.search).get("id") || "");
 		window.addEventListener("popstate", () => {
-			this.resolve(new URLSearchParams(location.search).get("id") || "");
+			super.set(new URLSearchParams(location.search).get("id") || "");
 		});
 	}
 	/** @param {string} roomId */

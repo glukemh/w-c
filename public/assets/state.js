@@ -2,9 +2,37 @@
  * @template T
  */
 export class State {
+	/**
+	 * @template {[...State<any>[]]} T
+	 * @param {T} states */
+	static async *race(...states) {
+		/**
+		 * @template S
+		 * @typedef {S extends State<infer U> ? U : never} StateValues
+		 */
+		/**
+		 * @template {[...any[]]} Tuple
+		 * @typedef { {[Index in keyof Tuple]: StateValues<Tuple[Index]>; } & {length: Tuple['length']}} StateIters
+		 */
+
+		let promise = Promise.all(states.map((state) => state.#current));
+		while (true) {
+			await promise;
+			yield /** @type {Promise<StateIters<T>>} */ (
+				Promise.all(states.map((state) => state.#current))
+			);
+			promise = Promise.race(states.map((state) => state.#nextState.promise));
+		}
+	}
+
 	/** @type {PromiseWithResolvers<T>} */
 	#nextState = Promise.withResolvers();
 	#current = this.#nextState.promise;
+
+	/** @protected */
+	get current() {
+		return this.#current;
+	}
 
 	/**
 	 * @protected
@@ -30,10 +58,11 @@ export class State {
  * @extends {State<T>}
  */
 export class MutableState extends State {
-	/** @param {T} state */
+	/** @type {((s: T) => T)} */
 	#composite = (state) => state;
-	/** @type {null | (() => void)} */
+	/** @type {null | (() => void) | ((s: T) => void)} */
 	#task = null;
+	#unset = true;
 
 	/** Set the state and notify subscribers.
 	 * @param {T} state */
@@ -41,43 +70,46 @@ export class MutableState extends State {
 		this.resolve(state);
 	}
 
+	/**
+	 * @protected
+	 * @param {T} state */
+	resolve(state) {
+		this.#unset = false;
+		this.#composite = () => state;
+		if (!this.#task) {
+			this.#task = () => {
+				super.resolve(this.#composite(state));
+				this.#task = null;
+				this.#composite = (state) => state;
+			};
+			queueMicrotask(/** @type {() => void} */ (this.#task));
+		}
+	}
+
 	/** Set state based on the current value.
 	 * @param {(state: T) => T} updater function called with current state. */
 	update(updater) {
+		if (this.#unset) return;
 		const f = this.#composite;
 		this.#composite = (state) => updater(f(state));
 		if (!this.#task) {
-			this.#task = async () => {
-				for await (const value of this.subscribe()) {
-					this.set(this.#composite(value));
-					this.#task = null;
-					this.#composite = (state) => state;
-					break;
-				}
+			this.#task = (value) => {
+				super.resolve(this.#composite(value));
+				this.#task = null;
+				this.#composite = (state) => state;
 			};
-			this.#task();
+			this.current.then(this.#task);
 		}
 	}
 }
 
 /**
  * @template T
- * @param {ReturnType<State<T>['subscribe']>} iter
+ * @param {AsyncGenerator<T, any, any>} iter
  * @param {(state: T) => void} callback
  */
 export async function forAwait(iter, callback) {
 	for await (const value of iter) {
 		callback(value);
-	}
-}
-
-/** @param {...State<any>} states*/
-export async function* race(...states) {
-	const iters = states.map((state) => state.subscribe());
-	const promises = iters.map((iter, i) => iter.next().then(() => i));
-	while (true) {
-		yield;
-		const i = await Promise.race(promises);
-		promises[i] = iters[i].next().then(() => i);
 	}
 }

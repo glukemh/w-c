@@ -1,81 +1,87 @@
-import State, { forAwait } from "/assets/state.js";
+import { MutableState, State, forAwait } from "/assets/state.js";
 import { uid } from "/assets/uid.js";
 import { roomId } from "/assets/room-id.js";
 
-/** @extends {State<WebSocket | null>} */
+/** @extends {State<WebSocket>} */
 class RoomWebsocketConnection extends State {
+	/** @type {WebSocket | null} */
+	#current = null;
 	constructor() {
-		super(null);
-		const iter = roomId.subscribe();
-		iter.next();
-		[iter, uid.subscribe()].forEach((iter) =>
-			forAwait(iter, () => {
-				this.get()?.close();
-				if (roomId.get()) {
-					const url = new URL(`/api/room/${roomId.get()}`, location.origin);
-					url.searchParams.set("uid", uid.get());
-					this.set(new WebSocket(url));
-				} else {
-					this.set(null);
-				}
-			})
-		);
+		super();
+		this.#init();
 	}
-}
-
-/** @extends {State<MessageEvent<any> | null>} */
-class RoomWebsocketMessage extends State {
-	constructor() {
-		super(null);
-		forAwait(roomWebsocketConnection.subscribe(), (ws) => {
-			if (ws) {
-				ws.addEventListener("message", (e) => this.set(e));
+	async #init() {
+		for await (const [room, user] of State.race(roomId, uid)) {
+			this.#current?.close();
+			if (room && user) {
+				const url = new URL(`/api/room/${room}`, location.origin);
+				url.searchParams.set("uid", user);
+				this.#current = new WebSocket(url);
+				this.resolve(this.#current);
 			} else {
-				this.set(null);
+				this.#current = null;
 			}
-		});
+		}
 	}
 }
 
-/** @extends {State<Event | null>} */
+/** @extends {MutableState<MessageEvent<any>>} */
+class RoomWebsocketMessage extends MutableState {
+	constructor() {
+		super();
+		this.#init();
+	}
+	async #init() {
+		for await (const ws of roomWebsocketConnection.subscribe()) {
+			if (ws) {
+				ws.addEventListener("message", (e) => this.resolve(e));
+			}
+		}
+	}
+}
+
+/** @extends {State<Event>} */
 class RoomWebsocketError extends State {
 	constructor() {
-		super(null);
-		forAwait(roomWebsocketConnection.subscribe(), (ws) => {
+		super();
+		this.#init();
+	}
+	async #init() {
+		for await (const ws of roomWebsocketConnection.subscribe()) {
 			if (ws) {
-				ws.addEventListener("error", (e) => this.set(e));
-			} else {
-				this.set(null);
+				ws.addEventListener("error", (e) => this.resolve(e));
 			}
-		});
+		}
 	}
 }
 
-/** @extends {State<Event | null>} */
+/** @extends {State<Event>} */
 class RoomWebsocketOpen extends State {
 	constructor() {
-		super(null);
-		forAwait(roomWebsocketConnection.subscribe(), (ws) => {
+		super();
+		this.#init();
+	}
+	async #init() {
+		for await (const ws of roomWebsocketConnection.subscribe()) {
 			if (ws) {
-				ws.addEventListener("open", (e) => this.set(e));
-			} else {
-				this.set(null);
+				ws.addEventListener("open", (e) => this.resolve(e));
 			}
-		});
+		}
 	}
 }
 
-/** @extends {State<CloseEvent | null>} */
+/** @extends {State<CloseEvent>} */
 class RoomWebsocketClose extends State {
 	constructor() {
-		super(null);
-		forAwait(roomWebsocketConnection.subscribe(), (ws) => {
+		super();
+		this.#init();
+	}
+	async #init() {
+		for await (const ws of roomWebsocketConnection.subscribe()) {
 			if (ws) {
-				ws.addEventListener("close", (e) => this.set(e));
-			} else {
-				this.set(null);
+				ws.addEventListener("close", (e) => this.resolve(e));
 			}
-		});
+		}
 	}
 }
 

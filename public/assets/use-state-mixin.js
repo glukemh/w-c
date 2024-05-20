@@ -7,10 +7,10 @@ export const useStateMixin = (Base) => {
 	class UseStateMixin extends Base {
 		#iters = new Set();
 		/**
-		 * Call callback on each state change. Returns on disconnectedCallback.
+		 * Subscribe on connectedCallback. Returns on disconnectedCallback.
 		 * @template T
-		 * @param {import('/assets/state.js').State<T>} state
-		 * @param {(value: T) => void} callback
+		 * @param {import('/assets/state.js').State<T>} state state to subscribe to
+		 * @param {(value: T) => void} callback calls on state change
 		 */
 		async subscribe(state, callback) {
 			const iter = state.subscribe();
@@ -21,6 +21,7 @@ export const useStateMixin = (Base) => {
 		}
 
 		disconnectedCallback() {
+			super.disconnectedCallback?.();
 			for (const iter of this.#iters) {
 				iter.return();
 			}

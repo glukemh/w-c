@@ -27,27 +27,41 @@ export class State {
 
 	/** @type {PromiseWithResolvers<T>} */
 	#nextState = Promise.withResolvers();
-	#current = this.#nextState.promise;
+	/** @type {{ promise: Promise<T>, value?: T }} */
+	#current = {
+		promise: this.#nextState.promise,
+	};
 
 	/** @protected */
 	get current() {
-		return this.#current;
+		return this.#current.promise;
 	}
 
 	/**
+	 * Set values
 	 * @protected
 	 * @param {T} value */
 	resolve(value) {
+		this.#current.promise = this.#nextState.promise;
+		this.#current.value = value;
 		this.#nextState.resolve(value);
-		this.#current = this.#nextState.promise;
 		this.#nextState = Promise.withResolvers();
 	}
 
+	/**
+	 * Update a value only after the first value has been set
+	 * @protected
+	 * @param {(state: T) => T } updater */
+	apply(updater) {
+		if ("value" in this.#current) {
+			this.resolve(updater(/** @type {T} */ (this.#current.value)));
+		}
+	}
 	async *subscribe() {
-		let promise = this.#current;
+		let promise = this.current;
 		while (true) {
 			await promise;
-			yield this.#current;
+			yield /** @type {T} */ (this.#current.value);
 			promise = this.#nextState.promise;
 		}
 	}
@@ -58,48 +72,33 @@ export class State {
  * @extends {State<T>}
  */
 export class MutableState extends State {
-	/** @type {((s: T) => T)} */
-	#composite = (state) => state;
-	/** @type {null | (() => void) | ((s: T) => void)} */
-	#task = null;
-	#unset = true;
-
-	/** Set the state and notify subscribers.
-	 * @param {T} state */
+	/** @param {T} state */
 	set(state) {
 		this.resolve(state);
 	}
+	/** @param {(state: T) => T} updater */
+	update(updater) {
+		this.apply(updater);
+	}
+}
 
-	/**
-	 * @protected
-	 * @param {T} state */
-	resolve(state) {
-		this.#unset = false;
-		this.#composite = () => state;
-		if (!this.#task) {
-			this.#task = () => {
-				super.resolve(this.#composite(state));
-				this.#task = null;
-				this.#composite = (state) => state;
-			};
-			queueMicrotask(/** @type {() => void} */ (this.#task));
-		}
+/**
+ * @template T
+ */
+export class Context {
+	#state;
+	/** @param {State<T>} context */
+	constructor(context) {
+		this.#state = context;
 	}
 
-	/** Set state based on the current value.
-	 * @param {(state: T) => T} updater function called with current state. */
-	update(updater) {
-		if (this.#unset) return;
-		const f = this.#composite;
-		this.#composite = (state) => updater(f(state));
-		if (!this.#task) {
-			this.#task = (value) => {
-				super.resolve(this.#composite(value));
-				this.#task = null;
-				this.#composite = (state) => state;
-			};
-			this.current.then(this.#task);
-		}
+	get() {
+		return this.#state;
+	}
+
+	/** @param {State<T>} state */
+	set(state) {
+		this.#state = state;
 	}
 }
 

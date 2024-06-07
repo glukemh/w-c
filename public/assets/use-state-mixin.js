@@ -9,7 +9,7 @@ export const useStateMixin = (Base) => {
 		/**
 		 * Subscribe on connectedCallback. Returns on disconnectedCallback.
 		 * @template T
-		 * @param {import('/assets/state.js').State<T>} state state to subscribe to
+		 * @param {import('../state/state.js').State<T>} state state to subscribe to
 		 * @param {(value: T) => void} callback calls on state change
 		 */
 		async subscribe(state, callback) {

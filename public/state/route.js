@@ -1,36 +1,57 @@
-import { DerivedState, InitialState, forAwait } from "/assets/state.js";
+import { State, forAwait } from "/state/state.js";
 
-/** @extends DerivedState<URL> */
-class LocationState extends DerivedState {
+/** @extends State<Location> */
+class LocationState extends State {
 	constructor() {
 		super();
-		window.addEventListener("popstate", this.nextGet.bind(this));
-	}
-
-	get() {
-		return new URL(location.href);
-	}
-}
-/** @extends InitialState<string> */
-class PathnameState extends InitialState {
-	constructor() {
-		super(locationUrl.get().pathname);
-		forAwait(locationUrl.subscribe(), (url) => {
-			this.next(url.pathname);
+		this.resolve(window.location);
+		window.addEventListener("popstate", () => {
+			this.resolve(window.location);
 		});
 	}
 }
 
-/** @extends InitialState<string> */
-class SearchState extends InitialState {
+/** @extends State<URLSearchParams> */
+class SearchState extends State {
 	constructor() {
-		super(locationUrl.get().search);
-		forAwait(locationUrl.subscribe(), (url) => {
-			this.next(url.search);
+		super();
+		forAwait(location.subscribe(), (loc) => {
+			this.resolve(new URLSearchParams(loc.search));
 		});
+	}
+
+	/**
+	 * Set a search parameter
+	 * @param {string} param search param name
+	 * @param {string} value search param value
+	 */
+	setParam(param, value) {
+		const url = new URL(window.location.href);
+		url.searchParams.set(param, value);
+		window.history.pushState(window.history.state, "", url);
+	}
+
+	/**
+	 * Append a search parameter
+	 * @param {string} param search param name
+	 * @param {string} value search param value
+	 */
+	appendParam(param, value) {
+		const url = new URL(window.location.href);
+		url.searchParams.append(param, value);
+		window.history.pushState(window.history.state, "", url);
+	}
+
+	/**
+	 * Delete a search parameter
+	 * @param {string} param search parameter name
+	 */
+	deleteParam(param) {
+		const url = new URL(window.location.href);
+		url.searchParams.delete(param);
+		window.history.pushState(window.history.state, "", url);
 	}
 }
 
-export const locationUrl = new LocationState();
-export const pathname = new PathnameState();
+export const location = new LocationState();
 export const search = new SearchState();

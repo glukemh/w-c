@@ -1,4 +1,4 @@
-import State from "/assets/state.js";
+import State from "../state/state.js";
 
 /** @type {Map<string, MessagePort>} */
 const ports = new Map();

@@ -1,6 +1,6 @@
-import { MutableState, State, forAwait } from "/assets/state.js";
-import { uid } from "/assets/uid.js";
-import { roomId } from "/assets/room-id.js";
+import { MutableState, State } from "/state/state.js";
+import { uid } from "/state/uid.js";
+import { roomId } from "/state/room-id.js";
 
 /** @extends {State<WebSocket>} */
 class RoomWebsocketConnection extends State {

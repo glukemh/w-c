@@ -1,3 +1,3 @@
-import { MutableState } from "/assets/state.js";
+import { MutableState } from "../state/state.js";
 
 export const roomMessage = new MutableState();

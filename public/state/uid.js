@@ -1,4 +1,4 @@
-import { State } from "/assets/state.js";
+import { State } from "/state/state.js";
 
 /** @extends {State<string>} */
 class Uid extends State {

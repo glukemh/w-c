@@ -1,64 +1,81 @@
 <!DOCTYPE html>
-<html lang="en">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Room Number</title>
+<link rel="icon" href="assets/icon-n.svg">
+<link rel="manifest" href="manifest.json">
+<script src="assets/app.js" type="module"></script>
+<script src="components/page-route.js" type="module"></script>
+<style>
+  @import url(assets/global.css);
+  @import url(assets/list.css);
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Room Number</title>
-  <link rel="icon" href="assets/icon-n.svg" />
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="assets/global.css">
-  <script src="assets/app.js" type="module"></script>
-  <script src="components/page-route.js" type="module"></script>
-</head>
+  page-route> :not(:target, header) {
+    display: none;
+  }
 
-<body>
-  <page-route>
-    <style>
-      page-route:not(:state(_)) [data-route="/"] {
-        display: none;
-      }
-    </style>
-    <main data-route="/">
-      <template shadowrootmode="open">
-        <style>
-          @import url("assets/focus-ring.css") layer(base);
-          @import url("assets/input.css") layer(base);
-          @import url("assets/button.css") layer(base);
+  page-route:not(:has(> :target)) #join-room {
+    display: block;
+  }
 
-          form {
-            line-height: 3.5em;
-          }
+  ul {
+    display: flex;
+    gap: 1em;
+  }
+</style>
+<page-route>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="#join-room">Join Room</a>
+        <li><a href="#rooms">Rooms</a>
+        <li><a href="#settings">Settings</a>
+      </ul>
+    </nav>
+  </header>
+  <main id="join-room">
+    <template shadowrootmode="open">
+      <style>
+        @import url("assets/focus-ring.css") layer(base);
+        @import url("assets/input.css") layer(base);
+        @import url("assets/button.css") layer(base);
 
-          form>* {
-            display: inline flow-root;
-            margin-inline: 0.2em;
-            vertical-align: bottom;
-          }
+        form {
+          line-height: 3.5em;
+        }
 
-          input {
-            text-align: inherit;
-          }
+        form>* {
+          display: inline flow-root;
+          margin-inline: 0.2em;
+          vertical-align: bottom;
+        }
 
-          label {
-            display: inline flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            line-height: 1em;
-          }
+        input {
+          text-align: inherit;
+        }
 
-          label input {
-            flex-basis: 100%;
-          }
-        </style>
-        <h1>Room Number</h1>
-        <form action="/" method="get">
-          <input type="text" name="id" placeholder="Enter a room" required>
-          <button type="submit">Join</button>
-        </form>
-      </template>
-    </main>
-  </page-route>
-</body>
+        label {
+          display: inline flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          line-height: 1em;
+        }
 
-</html>
+        label input {
+          flex-basis: 100%;
+        }
+      </style>
+      <h1>Room Number</h1>
+      <form action="#rooms" method="get">
+        <input type="text" name="id" placeholder="Enter a room" required>
+        <button type="submit">Join</button>
+      </form>
+    </template>
+  </main>
+  <main id="settings">
+    <template shadowrootmode="open"></template>
+  </main>
+  <main id="rooms">
+    <template shadowrootmode="open"></template>
+  </main>
+</page-route>

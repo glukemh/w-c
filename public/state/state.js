@@ -14,14 +14,31 @@ export class State {
 		 * @template {[...any[]]} Tuple
 		 * @typedef { {[Index in keyof Tuple]: StateValues<Tuple[Index]>; } & {length: Tuple['length']}} StateIters
 		 */
+		const promise = Promise.withResolvers();
+		/** @param {ReturnType<State['subscribe']>} iter */
+		async function iterate(iter) {
+			for await (const value of iter) {
+				promise.resolve(value);
+				const p = Promise.withResolvers();
+				promise.promise = p.promise;
+				promise.resolve = p.resolve;
+				promise.reject = p.reject;
+			}
+		}
 
-		let promise = Promise.all(states.map((state) => state.#current));
-		while (true) {
-			await promise;
-			yield /** @type {Promise<StateIters<T>>} */ (
-				Promise.all(states.map((state) => state.#current))
-			);
-			promise = Promise.race(states.map((state) => state.#nextState.promise));
+		const iters = states.map((state) => state.subscribe());
+
+		Promise.all(iters.map((iter) => iter.next())).then(promise.resolve);
+		iters.forEach(iterate);
+		try {
+			while (true) {
+				await promise.promise;
+				yield /** @type {Promise<StateIters<T>>} */ (
+					Promise.all(states.map((state) => state.#current))
+				);
+			}
+		} finally {
+			iters.forEach((iter) => iter.return());
 		}
 	}
 

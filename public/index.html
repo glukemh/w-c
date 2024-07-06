@@ -6,6 +6,7 @@
 <link rel="manifest" href="manifest.json">
 <script src="assets/app.js" type="module"></script>
 <script src="components/page-route.js" type="module"></script>
+<script src="components/search-params-input.js" type="module"></script>
 <style>
   @import url(assets/global.css);
   @import url(assets/list.css);
@@ -67,7 +68,8 @@
       </style>
       <h1>Room Number</h1>
       <form action="#rooms" method="get">
-        <input type="text" name="id" placeholder="Enter a room" required>
+        <search-params-input></search-params-input>
+        <input type="text" name="room-id" placeholder="Enter a room" required>
         <button type="submit">Join</button>
       </form>
     </template>

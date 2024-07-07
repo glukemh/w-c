@@ -13,27 +13,56 @@
 
   body {
     display: grid;
-    grid-template-columns: 16px 1fr 16px;
+    grid-template-columns: 16px minmax(0, 1fr) 16px;
     grid-template-rows: min-content;
     align-items: start;
-    justify-items: center;
+
+    >* {
+      grid-column: 2;
+    }
+
+    > :not(:target, header) {
+      display: none;
+    }
+
+    &:not(:has(> :target)) #join-room {
+      display: block;
+    }
+
+    &:not(:has(> :target)) [href="#join-room"],
+    &:has(#join-room:target) [href="#join-room"],
+    &:has(#rooms:target) [href="#rooms"],
+    &:has(#settings:target) [href="#settings"] {
+      text-decoration-color: currentColor;
+      font-weight: bold;
+    }
   }
 
-  body>* {
-    grid-column: 2;
-  }
+  header {
+    text-align: center;
 
-  body> :not(:target, header) {
-    display: none;
-  }
+    ul {
+      display: inline flex;
+      gap: 1em;
+      max-width: 100%;
+      overflow-x: auto;
+      scroll-snap-type: x proximity;
+      scrollbar-width: thin;
+      scrollbar-gutter: stable both-edges;
+      padding-block: 0.5em;
+      text-align: center;
 
-  body:not(:has(> :target)) #join-room {
-    display: block;
-  }
+      >* {
+        flex-shrink: 0;
+        scroll-snap-align: center;
+      }
+    }
 
-  ul {
-    display: flex;
-    gap: 1em;
+    @media (hover: none) {
+      ul {
+        scrollbar-width: none;
+      }
+    }
   }
 </style>
 <header>
@@ -48,11 +77,10 @@
 <main id="join-room">
   <template shadowrootmode="open">
     <style>
-      @import url("assets/focus-ring.css") layer(base);
       @import url("assets/input.css") layer(base);
       @import url("assets/button.css") layer(base);
 
-      h1 {
+      :host {
         text-align: center;
       }
     </style>

@@ -5,10 +5,8 @@
 	outline-style: solid;
 	outline-color: var(--color-accent-color);
 	animation: focus-visible 0s ease forwards;
-}
 
-@media (prefers-reduced-motion: no-preference) {
-	:focus-visible {
+	@media (prefers-reduced-motion: no-preference) {
 		animation-duration: 0.3s;
 	}
 }

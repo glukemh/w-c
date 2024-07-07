@@ -1,6 +1,6 @@
 @import url("/assets/focus-ring.css");
 
-a {
+:any-link {
 	--_anchor-transition-duration: var(--anchor-transition-duration, 0.2s);
 	--_anchor-transition-property: var(
 		--anchor-transition-property,
@@ -18,18 +18,18 @@ a {
 	transition-timing-function: var(--_anchor-transition-timing-function);
 	text-underline-offset: 0.25em;
 	text-decoration-color: transparent;
-}
 
-a:hover {
-	text-decoration: underline;
-	text-underline-offset: 0.1em;
-	text-decoration-color: currentColor;
-}
+	&:hover {
+		text-decoration: underline;
+		text-underline-offset: 0.1em;
+		text-decoration-color: currentColor;
+	}
 
-:visited {
-	color: var(--color-visited-text);
-}
+	&:visited {
+		color: var(--color-visited-text);
+	}
 
-:active {
-	color: var(--color-active-text);
+	&:active {
+		color: var(--color-active-text);
+	}
 }

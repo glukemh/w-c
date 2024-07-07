@@ -1,10 +1,12 @@
 @import url("/assets/focus-ring.css");
 
-input {
+input,
+textarea {
 	--_input-border-radius: var(--input-border-radius, 0.25em);
 	--_input-border-width: var(--input-border-width, 1.5px);
 	--_input-padding-block: var(--input-padding-block, 0.75em);
 	--_input-padding-inline: var(--input-padding-inline, 1.25em);
+
 	font-size: inherit;
 	background-color: var(--color-field);
 	color: var(--color-field-text);
@@ -12,8 +14,21 @@ input {
 	padding-inline: var(--_input-padding-inline);
 	border: var(--_input-border-width) solid var(--color-button-border);
 	border-radius: var(--_input-border-radius);
-}
 
-input[type="submit"] {
-	cursor: pointer;
+	&[type="submit"] {
+		cursor: pointer;
+	}
+
+	&:placeholder-shown {
+		transition-property: text-underline-offset, text-decoration-color;
+		transition-duration: 0.2s;
+		transition-timing-function: ease;
+		text-underline-offset: 0.25em;
+		text-decoration: underline solid transparent;
+
+		&:hover {
+			text-underline-offset: 0.1em;
+			text-decoration-color: revert;
+		}
+	}
 }

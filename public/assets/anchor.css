@@ -4,7 +4,6 @@
 	--_anchor-transition-duration: var(--anchor-transition-duration, 0.2s);
 	--_anchor-transition-property: var(
 		--anchor-transition-property,
-		color,
 		text-decoration-color,
 		text-underline-offset
 	);
@@ -17,12 +16,11 @@
 	transition-duration: var(--_anchor-transition-duration);
 	transition-timing-function: var(--_anchor-transition-timing-function);
 	text-underline-offset: 0.25em;
-	text-decoration-color: transparent;
+	text-decoration: underline solid transparent;
 
 	&:hover {
-		text-decoration: underline;
 		text-underline-offset: 0.1em;
-		text-decoration-color: currentColor;
+		text-decoration-color: revert;
 	}
 
 	&:visited {

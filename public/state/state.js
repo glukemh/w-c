@@ -44,14 +44,21 @@ export class State {
 
 	/** @type {PromiseWithResolvers<T>} */
 	#nextState = Promise.withResolvers();
-	/** @type {{ promise: Promise<T>, value?: T }} */
+	/** @type {{ promise: Promise<T>, value: T } | { promise: Promise<T> }} */
 	#current = {
 		promise: this.#nextState.promise,
 	};
+	/** @type {((a: T, b: T) => boolean) | undefined} */
+	#compare;
 
 	/** @protected */
 	get current() {
 		return this.#current.promise;
+	}
+
+	/** @param {(a: T, b: T) => boolean} [compare] optionally return whether values are equal to skip resolves */
+	constructor(compare) {
+		this.#compare = compare;
 	}
 
 	/**
@@ -59,8 +66,16 @@ export class State {
 	 * @protected
 	 * @param {T} value */
 	resolve(value) {
-		this.#current.promise = this.#nextState.promise;
-		this.#current.value = value;
+		if (
+			"value" in this.#current &&
+			this.#compare?.(this.#current.value, value)
+		) {
+			return;
+		}
+		this.#current = {
+			promise: this.#nextState.promise,
+			value,
+		};
 		this.#nextState.resolve(value);
 		this.#nextState = Promise.withResolvers();
 	}
@@ -71,14 +86,16 @@ export class State {
 	 * @param {(state: T) => T } updater */
 	apply(updater) {
 		if ("value" in this.#current) {
-			this.resolve(updater(/** @type {T} */ (this.#current.value)));
+			this.resolve(updater(this.#current.value));
 		}
 	}
 	async *subscribe() {
 		let promise = this.current;
 		while (true) {
 			await promise;
-			yield /** @type {T} */ (this.#current.value);
+			if ("value" in this.#current) {
+				yield this.#current.value;
+			}
 			promise = this.#nextState.promise;
 		}
 	}

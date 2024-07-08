@@ -45,10 +45,11 @@ class SearchState extends State {
 	/**
 	 * Delete a search parameter
 	 * @param {string} param search parameter name
+	 * @param {string} [value] search parameter value
 	 */
-	deleteParam(param) {
+	deleteParam(param, value) {
 		const url = new URL(window.location.href);
-		url.searchParams.delete(param);
+		url.searchParams.delete(param, value);
 		window.history.pushState(window.history.state, "", url);
 	}
 }

@@ -86,15 +86,31 @@
     </style>
     <h1>Room Number</h1>
     <form action="#rooms" method="get">
-      <search-params-input hidden></search-params-input>
+      <search-params-input></search-params-input>
       <input type="text" name="room-id" placeholder="Enter a room" required>
       <button type="submit">Join</button>
     </form>
   </template>
 </main>
-<main id="settings">
-  <template shadowrootmode="open"></template>
-</main>
 <main id="rooms">
+  <template shadowrootmode="open">
+    <style>
+
+    </style>
+    <nav>
+      <saved-rooms>
+        <template>
+          <h1></h1>
+        </template>
+      </saved-rooms>
+    </nav>
+    <saved-rooms>
+      <template>
+        <h1></h1>
+      </template>
+    </saved-rooms>
+  </template>
+</main>
+<main id="settings">
   <template shadowrootmode="open"></template>
 </main>

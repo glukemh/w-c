@@ -10,62 +10,69 @@
   @import url(assets/global.css) layer(base);
   @import url(assets/list.css) layer(base);
   @import url(assets/anchor.css) layer(base);
+  @import url(assets/input.css) layer(base);
+  @import url(assets/button.css) layer(base);
 
-  body {
-    display: grid;
-    grid-template-columns: 16px minmax(0, 1fr) 16px;
-    grid-template-rows: min-content;
-    align-items: start;
-
-    >* {
-      grid-column: 2;
-    }
-
-    > :not(:target, header) {
-      display: none;
-    }
-
-    &:not(:has(> :target)) #join-room {
-      display: block;
-    }
-
-    &:not(:has(> :target)) [href="#join-room"],
-    &:has(#join-room:target) [href="#join-room"],
-    &:has(#rooms:target) [href="#rooms"],
-    &:has(#settings:target) [href="#settings"] {
-      text-decoration-color: currentColor;
-      font-weight: bold;
-    }
-  }
-
-  header {
-    text-align: center;
-
-    ul {
-      display: inline flex;
-      gap: 1em;
-      max-width: 100%;
-      overflow-x: auto;
-      scroll-snap-type: x proximity;
-      scrollbar-width: thin;
-      scrollbar-gutter: stable both-edges;
-      padding-block: 0.5em;
-      text-align: center;
+  @scope (body) to (main > *) {
+    & {
+      display: grid;
+      grid-template-columns: 16px minmax(0, 1fr) 16px;
+      grid-template-rows: min-content;
+      align-items: start;
 
       >* {
-        flex-shrink: 0;
-        scroll-snap-align: center;
+        grid-column: 2;
       }
-    }
 
-    @media (hover: none) {
-      ul {
-        scrollbar-width: none;
+      > :not(:target, header) {
+        display: none;
+      }
+
+      &:not(:has(> :target)) #join-room {
+        display: block;
+      }
+
+      &:not(:has(> :target)) [href="#join-room"],
+      &:has(#join-room:target) [href="#join-room"],
+      &:has(#rooms:target) [href="#rooms"],
+      &:has(#settings:target) [href="#settings"] {
+        text-decoration-color: currentColor;
+        font-weight: bold;
       }
     }
   }
 </style>
 <header>
+  <style>
+    @scope {
+      & {
+        text-align: center;
+
+        ul {
+          display: inline flex;
+          gap: 1em;
+          max-width: 100%;
+          overflow-x: auto;
+          scroll-snap-type: x proximity;
+          scrollbar-width: thin;
+          scrollbar-gutter: stable both-edges;
+          padding-block: 0.5em;
+          text-align: center;
+
+          >* {
+            flex-shrink: 0;
+            scroll-snap-align: center;
+          }
+        }
+
+        @media (hover: none) {
+          ul {
+            scrollbar-width: none;
+          }
+        }
+      }
+    }
+  </style>
   <nav>
     <ul>
       <li><a href="#join-room">Join Room</a>
@@ -75,42 +82,35 @@
   </nav>
 </header>
 <main id="join-room">
-  <template shadowrootmode="open">
-    <style>
-      @import url("assets/input.css") layer(base);
-      @import url("assets/button.css") layer(base);
-
-      :host {
+  <style>
+    @scope {
+      & {
         text-align: center;
       }
-    </style>
-    <h1>Room Number</h1>
-    <form action="#rooms" method="get">
-      <search-params-input></search-params-input>
-      <input type="text" name="room-id" placeholder="Enter a room" required>
-      <button type="submit">Join</button>
-    </form>
-  </template>
+    }
+  </style>
+  <h1>Room Number</h1>
+  <form action="#rooms" method="get">
+    <search-params-input></search-params-input>
+    <input type="text" name="room-id" placeholder="Enter a room" required>
+    <button type="submit">Join</button>
+  </form>
 </main>
 <main id="rooms">
-  <template shadowrootmode="open">
-    <style>
-
-    </style>
-    <nav>
-      <saved-rooms>
-        <template>
-          <h1></h1>
-        </template>
-      </saved-rooms>
-    </nav>
+  <style>
+  </style>
+  <nav>
     <saved-rooms>
       <template>
         <h1></h1>
       </template>
     </saved-rooms>
-  </template>
+  </nav>
+  <saved-rooms>
+    <template>
+      <h1></h1>
+    </template>
+  </saved-rooms>
 </main>
 <main id="settings">
-  <template shadowrootmode="open"></template>
 </main>

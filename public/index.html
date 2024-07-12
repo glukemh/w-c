@@ -5,7 +5,7 @@
 <link rel="icon" href="assets/icon-n.svg">
 <link rel="manifest" href="manifest.json">
 <script src="assets/app.js" type="module"></script>
-<script src="components/search-params-input.js" type="module"></script>
+<script src="components/submit-to-history.js" type="module"></script>
 <style>
   @import url(assets/global.css) layer(base);
   @import url(assets/list.css) layer(base);
@@ -91,7 +91,7 @@
   </style>
   <h1>Room Number</h1>
   <form action="#rooms" method="get">
-    <search-params-input></search-params-input>
+    <submit-to-history></submit-to-history>
     <input type="text" name="room-id" placeholder="Enter a room" required>
     <button type="submit">Join</button>
   </form>

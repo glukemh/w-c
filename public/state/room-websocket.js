@@ -1,6 +1,6 @@
-import { MutableState, State } from "/state/state.js";
+import { State } from "/state/state.js";
 import { uid } from "/state/uid.js";
-import { roomId } from "/state/room-id.js";
+import { roomIds } from "/state/room-ids.js";
 
 /** @extends {State<WebSocket>} */
 class RoomWebsocketConnection extends State {

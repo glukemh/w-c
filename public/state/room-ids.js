@@ -1,30 +1,24 @@
-import { State } from "/state/state.js";
-import { search } from "/state/route.js";
-/**
- * @extends {State<Set<string>>}
- */
-class RoomIds extends State {
-	constructor() {
-		super((a, b) => a.isSubsetOf(b) && b.isSubsetOf(a));
-		this.#init();
-	}
+import { derive } from "/state/state.js";
+import { search, appendSearch, deleteSearch } from "/state/route.js";
 
-	async #init() {
-		for await (const params of search.subscribe()) {
-			this.resolve(new Set(params.getAll("roomId")));
-		}
-	}
+const ids = derive(
+	search(),
+	(s) => new Set(s.getAll("room-id")),
+	(a, b) => a.isSubsetOf(b) && b.isSubsetOf(a)
+);
 
-	/** @param {string[]} roomIds */
-	add(roomIds) {
-		for (const id of roomIds) {
-			search.appendParam("roomId", id);
-		}
-	}
-
-	/** @param {string} roomId */
-	remove(roomId) {
-		search.deleteParam("roomId", roomId);
-	}
+export async function* roomIds() {
+	yield* ids.subscribe();
 }
-export const roomIds = new RoomIds();
+
+/** @param {Iterable<string>} newIds */
+export function addRooms(newIds) {
+	appendSearch(new URLSearchParams([...newIds].map((id) => ["room-id", id])));
+}
+
+/** @param {Iterable<string>} removeIds */
+export function removeRooms(removeIds) {
+	deleteSearch(
+		new URLSearchParams([...removeIds].map((id) => ["room-id", id]))
+	);
+}

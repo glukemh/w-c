@@ -6,8 +6,7 @@ export default class SearchParamsInput extends ConnectElement {
 	static formAssociated = true;
 	#internals = this.attachInternals();
 	onConnect() {
-		const searchIter = search.subscribe();
-		forAwait(searchIter, (s) => {
+		const searchIter = forAwait(search(), (s) => {
 			const formData = new FormData();
 			for (const [name, value] of s.entries()) {
 				formData.append(name, value);

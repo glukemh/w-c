@@ -1,7 +1,7 @@
-import { location } from "../state/route.js";
+import { location } from "/state/route.js";
 
 export default class PageRoute extends HTMLElement {
-	locationSubscription = location.subscribe();
+	locationSubscription = location();
 	#internals = this.attachInternals();
 	async connectedCallback() {
 		for await (const loc of this.locationSubscription) {

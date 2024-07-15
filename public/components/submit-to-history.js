@@ -1,6 +1,6 @@
 export default class SubmitToHistory extends HTMLElement {
 	static get observedAttributes() {
-		return ["submit-params"];
+		return ["input-params"];
 	}
 	static formAssociated = true;
 	/** @param {SubmitEvent} e */
@@ -10,7 +10,7 @@ export default class SubmitToHistory extends HTMLElement {
 		if (!form) return;
 		const formData = new FormData(form);
 		const url = new URL(form.action);
-		switch (this.getAttribute("submit-params")) {
+		switch (this.getAttribute("input-params")) {
 			case "replace":
 				url.search = "";
 				break;

@@ -1,11 +1,14 @@
-import { roomId } from "/assets/room-id.js";
-import { useStateMixin } from "/assets/use-state-mixin.js";
+import InContext from "/components/in-context.js";
+import { roomIds } from "/state/room-ids.js";
+import { connectElementMixin } from "/assets/connect-element.js";
 
-export default class RoomId extends useStateMixin(HTMLElement) {
-	connectedCallback() {
-		this.subscribe(roomId, (id) => {
-			this.textContent = id;
-		});
+export default class RoomId extends connectElementMixin(HTMLElement) {
+	onConnect() {
+		const contextEl = this.closest("in-context");
+		if (contextEl instanceof InContext) {
+			const context = contextEl.context(roomIds, () => "");
+		}
+		return () => {};
 	}
 }
 

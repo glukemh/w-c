@@ -1,4 +1,4 @@
-import { derive, forAwait } from "/state/state.js";
+import { derive } from "/state/state.js";
 import { search, appendSearch, deleteSearch } from "/state/route.js";
 
 const ids = derive(
@@ -23,21 +23,28 @@ export function removeRooms(removeIds) {
 	);
 }
 
+/** @type {() => AsyncGenerator<string, void, unknown>} */
+let roomIdGenerator = async function* () {
+	const rooms = await ids.current;
+	for (const id of rooms) {
+		yield id;
+		break;
+	}
+};
+
 export async function* roomId() {
-	let rooms = await ids.current;
-	const roomsArray = [...rooms];
-	const contexts = new WeakMap();
-	let id;
-	while (true) {
-		const key = yield id;
-		if (contexts.has(key)) {
-			id = contexts.get(key);
-		} else {
-			const idExists = !!roomsArray.length;
-			id = roomsArray.pop();
-			if (idExists) {
-				contexts.set(key, id);
+	yield* roomIdGenerator();
+}
+
+export async function* roomIdContext() {
+	const rooms = await ids.current;
+	for (const id of rooms) {
+		roomIdGenerator = async function* () {
+			yield id;
+			for await (const newIds of roomIds()) {
+				if (!newIds.has(id)) break;
 			}
-		}
+		};
+		yield id;
 	}
 }

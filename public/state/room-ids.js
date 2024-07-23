@@ -1,15 +1,14 @@
+/** @import { State } from "/state/state.js" */
 import { derive } from "/state/state.js";
 import { search, appendSearch, deleteSearch } from "/state/route.js";
 
-const ids = derive(
+/** @typedef {typeof roomIds extends () => AsyncGenerator<infer U, void, any> ? U : never} RoomIds */
+
+export const roomIds = derive(
 	search(),
 	(s) => new Set(s.getAll("room-id")),
 	(a, b) => a.isSubsetOf(b) && b.isSubsetOf(a)
 );
-
-export async function* roomIds() {
-	yield* ids.subscribe();
-}
 
 /** @param {Iterable<string>} newIds */
 export function addRooms(newIds) {
@@ -23,28 +22,23 @@ export function removeRooms(removeIds) {
 	);
 }
 
-/** @type {() => AsyncGenerator<string, void, unknown>} */
-let roomIdGenerator = async function* () {
-	const rooms = await ids.current;
-	for (const id of rooms) {
-		yield id;
-		break;
+/**
+ * @param {RoomIds} currentIds
+ * @returns {Generator<string, void, unknown>}*/
+function* idIter(currentIds) {
+	/** @type {Map<unknown, string>} */
+	const contexts = new Map();
+	let key = yield "";
+	for (const id of currentIds) {
+		contexts.set(key, id);
+		while (contexts.has(key)) {
+			key = yield /** @type {string} */ (contexts.get(key));
+		}
 	}
-};
-
-export async function* roomId() {
-	yield* roomIdGenerator();
 }
 
 export async function* roomIdContext() {
-	const rooms = await ids.current;
-	for (const id of rooms) {
-		roomIdGenerator = async function* () {
-			yield id;
-			for await (const newIds of roomIds()) {
-				if (!newIds.has(id)) break;
-			}
-		};
-		yield id;
+	for await (const ids of roomIds()) {
+		yield idIter(ids);
 	}
 }

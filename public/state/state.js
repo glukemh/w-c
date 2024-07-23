@@ -1,6 +1,6 @@
-/**
- * @template T
- */
+const starting = Symbol("starting state value");
+
+/** @template T */
 export class State {
 	/**
 	 * @template {[...State<any>[]]} T
@@ -44,8 +44,9 @@ export class State {
 
 	/** @type {PromiseWithResolvers<T>} */
 	#nextState = Promise.withResolvers();
-	/** @type {{ promise: Promise<T>, value: T } | { promise: Promise<T> }} */
+	/** @type {{ promise: Promise<T>, value: T | typeof starting }} */
 	#current = {
+		value: starting,
 		promise: this.#nextState.promise,
 	};
 	/** @type {((a: T, b: T) => boolean) | undefined} */
@@ -65,14 +66,13 @@ export class State {
 	 * @param {T} value */
 	set(value) {
 		if (
-			"value" in this.#current &&
+			this.#current.value !== starting &&
 			this.#compare?.(this.#current.value, value)
 		) {
 			return;
 		}
 		this.#current.promise = this.#nextState.promise;
-		/** @type {{ promise: Promise<T>, value: T }} */ (this.#current).value =
-			value;
+		this.#current.value = value;
 		this.#nextState.resolve(value);
 		this.#nextState = Promise.withResolvers();
 	}
@@ -81,46 +81,17 @@ export class State {
 	 * Update a value only after the first value has been set
 	 * @param {(state: T) => T } updater */
 	update(updater) {
-		if ("value" in this.#current) {
-			this.set(updater(this.#current.value));
-		}
+		if (this.#current.value === starting) return;
+		this.set(updater(this.#current.value));
 	}
 
 	async *subscribe() {
 		let promise = this.current;
 		while (true) {
 			await promise;
-			if ("value" in this.#current) {
-				yield this.#current.value;
-			}
+			yield /** @type {T} */ (this.#current.value);
 			promise = this.#nextState.promise;
 		}
-	}
-}
-
-/**
- * @template T
- */
-export class Context {
-	#state;
-	/** @param {T} defaultState */
-	constructor(defaultState) {
-		this.#state = defaultState;
-	}
-
-	/**
-	 * @param {T} state
-	 * @param {() => void} callback
-	 */
-	with(state, callback) {
-		const prev = this.#state;
-		this.#state = state;
-		callback();
-		this.#state = prev;
-	}
-
-	get() {
-		return this.#state;
 	}
 }
 
@@ -139,18 +110,22 @@ export function forAwait(iter, callback) {
 }
 
 /**
- * @template {AsyncIterable} T
- * @template {(sourceState: T extends AsyncIterable<infer U> ? U : never) => any} C
- * @param {T} iter
- * @param {C} computed
- * @param {ConstructorParameters<typeof State<C extends () => infer U ? U : never>>[0]} [compare]
+ * @template T
+ * @template S
+ * @param {AsyncIterable<S>} source any async iterable
+ * @param {(sourceState: S) => T} computed compute the next state from source state
+ * @param {(prev: T, next: T) => boolean} [compare] skip current iteration if true
+ * @returns {() => AsyncGenerator<T, void, any>}
  */
-export function derive(iter, computed, compare) {
-	/** @type {State<C extends () => infer U ? U : never>} */
-	const state =
-		typeof compare === "function" ? new State(compare) : new State();
-	forAwait(iter, (s) => {
-		state.set(computed(s));
-	});
-	return state;
+export function derive(source, computed, compare) {
+	return async function* derived() {
+		/** @type {typeof starting | T} */
+		let prev = starting;
+		for await (const val of source) {
+			const next = computed(val);
+			if (prev === starting || !compare?.(prev, next)) {
+				yield (prev = next);
+			}
+		}
+	};
 }

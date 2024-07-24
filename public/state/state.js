@@ -120,12 +120,41 @@ export function forAwait(iter, callback) {
 export function derive(source, computed, compare) {
 	return async function* derived() {
 		/** @type {typeof starting | T} */
-		let prev = starting;
+		let current = starting;
 		for await (const val of source) {
 			const next = computed(val);
-			if (prev === starting || !compare?.(prev, next)) {
-				yield (prev = next);
+			if (current === starting || !compare?.(current, next)) {
+				yield (current = next);
 			}
 		}
 	};
+}
+
+/**
+ * @template S
+ * @template T
+ * @param {AsyncIterable<S>} source
+ * @param {(sourceState: S) => Generator<T, void>} toIter
+ */
+export function context(source, toIter) {
+	/** @type {Map<unknown, IteratorResult<T, void>>} */
+	const context = new Map();
+	return derive(source, (val) => {
+		context.clear();
+		const iter = toIter(val);
+		/** @param {unknown} key */
+		return (key) => {
+			/** @type {IteratorResult<T, void>} */
+			let v;
+			if (context.has(key)) {
+				v = /** @type {IteratorResult<T, void>} */ (context.get(key));
+			} else {
+				v = iter.next();
+				if (!v.done) {
+					context.set(key, v);
+				}
+			}
+			return v;
+		};
+	});
 }

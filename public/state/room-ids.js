@@ -1,5 +1,5 @@
 /** @import { State } from "/state/state.js" */
-import { derive } from "/state/state.js";
+import { derive, context } from "/state/state.js";
 import { search, appendSearch, deleteSearch } from "/state/route.js";
 
 /** @typedef {typeof roomIds extends () => AsyncGenerator<infer U, void, any> ? U : never} RoomIds */
@@ -22,23 +22,6 @@ export function removeRooms(removeIds) {
 	);
 }
 
-/**
- * @param {RoomIds} currentIds
- * @returns {Generator<string, void, unknown>}*/
-function* idIter(currentIds) {
-	/** @type {Map<unknown, string>} */
-	const contexts = new Map();
-	let key = yield "";
-	for (const id of currentIds) {
-		contexts.set(key, id);
-		while (contexts.has(key)) {
-			key = yield /** @type {string} */ (contexts.get(key));
-		}
-	}
-}
-
-export async function* roomIdContext() {
-	for await (const ids of roomIds()) {
-		yield idIter(ids);
-	}
-}
+export const roomIdContext = context(roomIds(), function* (ids) {
+	yield* ids;
+});

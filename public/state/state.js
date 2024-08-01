@@ -95,6 +95,68 @@ export class State {
 	}
 }
 
+export function context() {
+	const generators = new WeakMap();
+	/** @template T */
+	return class Context {
+		/** @type {WeakMap<WeakKey, () => AsyncGenerator<T>>} */
+		get generators() {
+			return generators;
+		}
+		/** @param {WeakKey} key */
+		constructor(key) {
+			this.key = key;
+		}
+		subscribe() {
+			if (!this.generators.has(this.key)) {
+				throw new Error("Invalid key access");
+			}
+			return /** @type {AsyncGenerator<T>} */ (
+				this.generators.get(this.key)?.()
+			);
+		}
+	};
+}
+
+/** @template T */
+export class Context {
+	/** @param {WeakKey} key */
+	#getOrCreateSubscriptionPromise(key) {
+		let p = this.#contextSubscription.get(key);
+		if (!p) {
+			p = Promise.withResolvers();
+			this.#contextSubscription.set(key, p);
+		}
+		return p;
+	}
+	/** @type {WeakMap<WeakKey, PromiseWithResolvers<() => AsyncGenerator<T>>>} */
+	#contextSubscription = new WeakMap();
+
+	/** @param {WeakKey} key */
+	remove(key) {
+		const p = this.#contextSubscription.get(key);
+		if (p) {
+			p.reject(new Error("Key was never registered"));
+		}
+		this.#contextSubscription.delete(key);
+	}
+
+	/**
+	 * @param {WeakKey} key
+	 * @param {() => AsyncGenerator<T>} subscription
+	 */
+	set(key, subscription) {
+		this.#getOrCreateSubscriptionPromise(key).resolve(subscription);
+	}
+
+	/**
+	 * @param {WeakKey} key
+	 * @returns {AsyncGenerator<T>} */
+	async *subscribe(key) {
+		yield* (await this.#getOrCreateSubscriptionPromise(key).promise)();
+	}
+}
+
 /**
  * @template {AsyncIterable} T
  * @param {T} iter
@@ -128,33 +190,4 @@ export function derive(source, computed, compare) {
 			}
 		}
 	};
-}
-
-/**
- * @template S
- * @template T
- * @param {AsyncIterable<S>} source
- * @param {(sourceState: S) => Generator<T, void>} toIter
- */
-export function context(source, toIter) {
-	/** @type {Map<unknown, IteratorResult<T, void>>} */
-	const context = new Map();
-	return derive(source, (val) => {
-		context.clear();
-		const iter = toIter(val);
-		/** @param {unknown} key */
-		return (key) => {
-			/** @type {IteratorResult<T, void>} */
-			let v;
-			if (context.has(key)) {
-				v = /** @type {IteratorResult<T, void>} */ (context.get(key));
-			} else {
-				v = iter.next();
-				if (!v.done) {
-					context.set(key, v);
-				}
-			}
-			return v;
-		};
-	});
 }

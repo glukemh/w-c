@@ -1,5 +1,5 @@
 /** @import { State } from "/state/state.js" */
-import { derive, context } from "/state/state.js";
+import { derive, context, Context } from "/state/state.js";
 import { search, appendSearch, deleteSearch } from "/state/route.js";
 
 /** @typedef {typeof roomIds extends () => AsyncGenerator<infer U, void, any> ? U : never} RoomIds */
@@ -22,6 +22,34 @@ export function removeRooms(removeIds) {
 	);
 }
 
-export const roomIdContext = context(roomIds(), function* (ids) {
-	yield* ids;
-});
+/** @type {Context<string>} */
+const roomIdContext = new Context();
+
+const roomIdIter = derive(roomIds(), (s) => s.values());
+
+/** @param {WeakKey} key */
+export function registerRoomId(key) {
+	roomIdContext.set(key, async function* () {
+		for await (const iter of roomIdIter()) {
+			const next = iter.next();
+			if (next.done) break;
+			yield next.value;
+		}
+	});
+}
+
+/** @param {WeakKey} key */
+export function unregisterRoomId(key) {
+	roomIdContext.remove(key);
+}
+
+export class RoomId {
+	#key;
+	/** @param {WeakKey} key */
+	constructor(key) {
+		this.#key = key;
+	}
+	subscribe() {
+		return roomIdContext.subscribe(this.#key);
+	}
+}

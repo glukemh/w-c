@@ -2,46 +2,6 @@ const starting = Symbol("starting state value");
 
 /** @template T */
 export class State {
-	/**
-	 * @template {[...State<any>[]]} T
-	 * @param {T} states */
-	static async *race(...states) {
-		/**
-		 * @template S
-		 * @typedef {S extends State<infer U> ? U : never} StateValues
-		 */
-		/**
-		 * @template {[...any[]]} Tuple
-		 * @typedef { {[Index in keyof Tuple]: StateValues<Tuple[Index]>; } & {length: Tuple['length']}} StateIters
-		 */
-		const promise = Promise.withResolvers();
-		/** @param {ReturnType<State['subscribe']>} iter */
-		async function iterate(iter) {
-			for await (const value of iter) {
-				promise.resolve(value);
-				const p = Promise.withResolvers();
-				promise.promise = p.promise;
-				promise.resolve = p.resolve;
-				promise.reject = p.reject;
-			}
-		}
-
-		const iters = states.map((state) => state.subscribe());
-
-		Promise.all(iters.map((iter) => iter.next())).then(promise.resolve);
-		iters.forEach(iterate);
-		try {
-			while (true) {
-				await promise.promise;
-				yield /** @type {Promise<StateIters<T>>} */ (
-					Promise.all(states.map((state) => state.#current))
-				);
-			}
-		} finally {
-			iters.forEach((iter) => iter.return());
-		}
-	}
-
 	/** @type {PromiseWithResolvers<T>} */
 	#nextState = Promise.withResolvers();
 	/** @type {{ promise: Promise<T>, value: T | typeof starting }} */
@@ -190,4 +150,66 @@ export function derive(source, computed, compare) {
 			}
 		}
 	};
+}
+
+/**
+ * Yields a tuple of values from async generators every time one of them yields. Returns immediately once any generator is done.
+ * Values may be skipped in favor of the most recent if a generator yields multiple times before this generator yields.
+ * @template {[...AsyncGenerator<any, void, void>[]]} T
+ * @param {T} generators */
+export async function* race(...generators) {
+	/**
+	 * @template S
+	 * @typedef {S extends AsyncGenerator<infer U> ? U : never} GeneratorYields
+	 */
+	/**
+	 * @template {[...any[]]} Tuple
+	 * @typedef { {[Index in keyof Tuple]: GeneratorYields<Tuple[Index]>; } & {length: Tuple['length']}} ValuesTuple
+	 */
+
+	const allUnfinished = generators.map(() => Promise.withResolvers());
+	const values = /** @type {ValuesTuple<T>} */ (new Array(generators.length));
+	const tuplesIter = tuples();
+	generators.forEach(iterate);
+	try {
+		yield* tuplesIter;
+	} catch (e) {
+		console.error(e);
+	} finally {
+		generators.map((iter) => iter.return());
+	}
+
+	/**
+	 * @param {AsyncGenerator} iter
+	 * @param {number} i */
+	async function iterate(iter, i) {
+		try {
+			for await (const value of iter) {
+				values[i] = value;
+				allUnfinished[i].resolve(true);
+				allUnfinished[i] = Promise.withResolvers();
+			}
+		} catch (e) {
+			console.error(e);
+		}
+		allUnfinished[i].resolve(false);
+	}
+
+	async function* tuples() {
+		let unfinished = Promise.withResolvers();
+		Promise.all(allUnfinished.map((p) => p.promise)).then((arr) => {
+			unfinished.resolve(arr.every((x) => x));
+		});
+		allUnfinished.forEach(async (p) => {
+			if (await p.promise) return;
+			unfinished.resolve(false);
+		});
+		while (await unfinished.promise) {
+			yield values;
+			unfinished = Promise.withResolvers();
+			Promise.race(allUnfinished.map((p) => p.promise)).then(
+				unfinished.resolve
+			);
+		}
+	}
 }

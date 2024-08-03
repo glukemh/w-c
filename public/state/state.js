@@ -55,65 +55,45 @@ export class State {
 	}
 }
 
-export function context() {
-	const generators = new WeakMap();
-	/** @template T */
-	return class Context {
-		/** @type {WeakMap<WeakKey, () => AsyncGenerator<T>>} */
-		get generators() {
-			return generators;
-		}
-		/** @param {WeakKey} key */
-		constructor(key) {
-			this.key = key;
-		}
-		subscribe() {
-			if (!this.generators.has(this.key)) {
-				throw new Error("Invalid key access");
-			}
-			return /** @type {AsyncGenerator<T>} */ (
-				this.generators.get(this.key)?.()
-			);
-		}
-	};
-}
-
 /** @template T */
 export class Context {
 	/** @param {WeakKey} key */
-	#getOrCreateSubscriptionPromise(key) {
-		let p = this.#contextSubscription.get(key);
+	#getOrCreateStatePromise(key) {
+		let p = this.#states.get(key);
 		if (!p) {
 			p = Promise.withResolvers();
-			this.#contextSubscription.set(key, p);
+			this.#states.set(key, p);
 		}
 		return p;
 	}
-	/** @type {WeakMap<WeakKey, PromiseWithResolvers<() => AsyncGenerator<T>>>} */
-	#contextSubscription = new WeakMap();
+	/** @type {WeakMap<WeakKey, PromiseWithResolvers<{ source: AsyncGenerator<T, void>, state: State<T> }>>} */
+	#states = new WeakMap();
 
 	/** @param {WeakKey} key */
 	remove(key) {
-		const p = this.#contextSubscription.get(key);
+		const p = this.#states.get(key);
 		if (p) {
-			p.reject(new Error("Key was never registered"));
+			p.promise.then(({ source }) => source.return()).catch();
+			p.reject(new Error("Key was never registered")); // no effect if p was already resolved
 		}
-		this.#contextSubscription.delete(key);
+		this.#states.delete(key);
 	}
 
 	/**
 	 * @param {WeakKey} key
-	 * @param {() => AsyncGenerator<T>} subscription
+	 * @param {AsyncGenerator<T, void>} source
 	 */
-	set(key, subscription) {
-		this.#getOrCreateSubscriptionPromise(key).resolve(subscription);
+	set(key, source) {
+		const state = new State();
+		forAwait(source, (s) => state.set(s));
+		this.#getOrCreateStatePromise(key).resolve({ source, state });
 	}
 
 	/**
 	 * @param {WeakKey} key
-	 * @returns {AsyncGenerator<T>} */
+	 * @returns {ReturnType<State<T>['subscribe']>} */
 	async *subscribe(key) {
-		yield* (await this.#getOrCreateSubscriptionPromise(key).promise)();
+		yield* (await this.#getOrCreateStatePromise(key).promise).state.subscribe();
 	}
 }
 

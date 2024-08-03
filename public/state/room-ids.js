@@ -1,14 +1,14 @@
-/** @import { State } from "/state/state.js" */
-import { derive, context, Context } from "/state/state.js";
+import { State, derive, forAwait, Context } from "/state/state.js";
 import { search, appendSearch, deleteSearch } from "/state/route.js";
 
-/** @typedef {typeof roomIds extends () => AsyncGenerator<infer U, void, any> ? U : never} RoomIds */
-
-export const roomIds = derive(
-	search(),
-	(s) => new Set(s.getAll("room-id")),
-	(a, b) => a.isSubsetOf(b) && b.isSubsetOf(a)
-);
+/** @type {State<Set<string>>} */
+const roomIdsState = new State((a, b) => a.isSubsetOf(b) && b.isSubsetOf(a));
+forAwait(search(), (search) => {
+	roomIdsState.set(new Set(search.getAll("room-id")));
+});
+export function roomIds() {
+	return roomIdsState.subscribe();
+}
 
 /** @param {Iterable<string>} newIds */
 export function addRooms(newIds) {
@@ -22,34 +22,19 @@ export function removeRooms(removeIds) {
 	);
 }
 
-/** @type {Context<string>} */
-const roomIdContext = new Context();
+/** @type {Context<BuiltinIterator<string>>} */
+const roomIdIterContext = new Context();
 
-const roomIdIter = derive(roomIds(), (s) => s.values());
-
-/** @param {WeakKey} key */
-export function registerRoomId(key) {
-	roomIdContext.set(key, async function* () {
-		for await (const iter of roomIdIter()) {
-			const next = iter.next();
-			if (next.done) break;
-			yield next.value;
-		}
-	});
+async function* roomIdIter() {
+	for await (const s of roomIds()) yield s.values();
 }
 
 /** @param {WeakKey} key */
-export function unregisterRoomId(key) {
-	roomIdContext.remove(key);
+export function setRoomIdIterFor(key) {
+	roomIdIterContext.set(key, roomIdIter());
 }
 
-export class RoomId {
-	#key;
-	/** @param {WeakKey} key */
-	constructor(key) {
-		this.#key = key;
-	}
-	subscribe() {
-		return roomIdContext.subscribe(this.#key);
-	}
+/** @param {WeakKey} key */
+export function removeRoomIdIterFor(key) {
+	roomIdIterContext.remove(key);
 }

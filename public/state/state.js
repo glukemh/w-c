@@ -1,3 +1,5 @@
+export { State, Context };
+
 const initial = Symbol("initial state value");
 
 class StartingState {
@@ -43,7 +45,7 @@ class InertState {
  */
 
 /** @template T */
-export class State {
+class State {
 	/** @type {PromiseWithResolvers<T>} */
 	#nextState = Promise.withResolvers();
 	#currentPromise = this.#nextState.promise;
@@ -158,7 +160,7 @@ class InitialContext {
 }
 
 /** @template T */
-export class Context {
+class Context {
 	/** @param {WeakKey} key */
 	#getStateOrInitial(key) {
 		let p = this.#states.get(key);

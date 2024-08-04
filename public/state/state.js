@@ -1,19 +1,28 @@
-const starting = Symbol("starting state value");
+const initial = Symbol("initial state value");
 
 /** @template T */
 export class State {
-	/** @type {PromiseWithResolvers<T>} */
+	/** @type {PromiseWithResolvers<T | typeof initial>} */
 	#nextState = Promise.withResolvers();
-	/** @type {{ promise: Promise<T>, value: T | typeof starting }} */
 	#current = {
-		value: starting,
+		value: /** @type {T | typeof initial} */ (initial),
 		promise: this.#nextState.promise,
 	};
 	/** @type {((a: T, b: T) => boolean) | undefined} */
 	#compare;
 
+	#inert = false;
+
+	/** @returns {Promise<T>} */
 	get current() {
-		return this.#current.promise;
+		return new Promise(async (resolve, reject) => {
+			const value = await this.#current.promise;
+			if (value === initial) {
+				reject(new Error("State is inert"));
+				return;
+			}
+			resolve(value);
+		});
 	}
 
 	/** @param {(a: T, b: T) => boolean} [compare] optionally return whether values are equal to skip resolves */
@@ -25,32 +34,42 @@ export class State {
 	 * Set values
 	 * @param {T} value */
 	set(value) {
+		this.#set(value);
+	}
+	/** @param {T | typeof initial} value */
+	#set(value) {
 		if (
-			this.#current.value !== starting &&
-			this.#compare?.(this.#current.value, value)
+			(this.#current.value !== initial &&
+				value !== initial &&
+				this.#compare?.(this.#current.value, value)) ||
+			this.#inert
 		) {
 			return;
 		}
+		this.#inert = value === initial;
 		this.#current.promise = this.#nextState.promise;
 		this.#current.value = value;
 		this.#nextState.resolve(value);
 		this.#nextState = Promise.withResolvers();
 	}
 
+	return() {
+		this.#set(initial);
+	}
+
 	/**
 	 * Update a value only after the first value has been set
 	 * @param {(state: T) => T } updater */
 	update(updater) {
-		if (this.#current.value === starting) return;
+		if (this.#current.value === initial) return;
 		this.set(updater(this.#current.value));
 	}
 
 	async *subscribe() {
-		let promise = this.current;
-		while (true) {
-			await promise;
-			yield /** @type {T} */ (this.#current.value);
-			promise = this.#nextState.promise;
+		await this.#current.promise;
+		while (this.#current.value !== initial) {
+			yield this.#current.value;
+			await this.#nextState.promise;
 		}
 	}
 }
@@ -121,11 +140,11 @@ export function forAwait(iter, callback) {
  */
 export function derive(source, computed, compare) {
 	return async function* derived() {
-		/** @type {typeof starting | T} */
-		let current = starting;
+		/** @type {typeof initial | T} */
+		let current = initial;
 		for await (const val of source) {
 			const next = computed(val);
-			if (current === starting || !compare?.(current, next)) {
+			if (current === initial || !compare?.(current, next)) {
 				yield (current = next);
 			}
 		}

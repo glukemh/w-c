@@ -9,7 +9,7 @@ export class State {
 		promise: this.#nextState.promise,
 	};
 	/** @type {((a: T, b: T) => boolean) | undefined} */
-	#compare;
+	#skip;
 
 	#inert = false;
 
@@ -25,44 +25,71 @@ export class State {
 		});
 	}
 
-	/** @param {(a: T, b: T) => boolean} [compare] optionally return whether values are equal to skip resolves */
-	constructor(compare) {
-		this.#compare = compare;
+	/** @param {(a: T, b: T) => boolean} [skip] optionally return whether values are equal to skip resolves */
+	constructor(skip) {
+		this.#skip = skip;
 	}
 
 	/**
-	 * Set values
-	 * @param {T} value */
+	 * Set values.
+	 * @param {T} value
+	 * @returns {boolean} false if state is inert */
 	set(value) {
-		this.#set(value);
+		return this.#set(value);
 	}
 	/** @param {T | typeof initial} value */
 	#set(value) {
 		if (
-			(this.#current.value !== initial &&
-				value !== initial &&
-				this.#compare?.(this.#current.value, value)) ||
-			this.#inert
+			(this.#current.value === initial ||
+				value === initial ||
+				!this.#skip?.(this.#current.value, value)) &&
+			!this.#inert
 		) {
-			return;
+			this.#inert = value === initial;
+			this.#current.promise = this.#nextState.promise;
+			this.#current.value = value;
+			this.#nextState.resolve(value);
+			this.#nextState = Promise.withResolvers();
 		}
-		this.#inert = value === initial;
-		this.#current.promise = this.#nextState.promise;
-		this.#current.value = value;
-		this.#nextState.resolve(value);
-		this.#nextState = Promise.withResolvers();
+		return !this.#inert;
 	}
 
+	/**
+	 * Returns all subscriptions.
+	 */
 	return() {
 		this.#set(initial);
 	}
 
 	/**
-	 * Update a value only after the first value has been set
-	 * @param {(state: T) => T } updater */
+	 * Returns all subscriptions when signal is aborted.
+	 * @param {AbortSignal} signal */
+	returnOn(signal) {
+		if (signal.aborted) {
+			this.return();
+		} else {
+			signal.addEventListener("abort", () => this.return(), { once: true });
+		}
+	}
+
+	/**
+	 * Update a value only after the first value has been set.
+	 * @param {(state: T) => T } updater
+	 * @returns {boolean} false if state is inert */
 	update(updater) {
-		if (this.#current.value === initial) return;
-		this.set(updater(this.#current.value));
+		if (this.#current.value !== initial) {
+			this.set(updater(this.#current.value));
+		}
+		return !this.#inert;
+	}
+
+	/**
+	 * Set state from source values returning if state becomes inert.
+	 * @param {AsyncGenerator<T>} source */
+	async source(source) {
+		for await (const value of source) {
+			if (!this.set(value)) break;
+		}
 	}
 
 	async *subscribe() {
@@ -85,15 +112,20 @@ export class Context {
 		}
 		return p;
 	}
-	/** @type {WeakMap<WeakKey, PromiseWithResolvers<{ source: AsyncGenerator<T, void>, state: State<T> }>>} */
+	/** @type {WeakMap<WeakKey, PromiseWithResolvers<State<T>> & { value?: State<T> }>} */
 	#states = new WeakMap();
 
 	/** @param {WeakKey} key */
 	remove(key) {
-		const p = this.#states.get(key);
-		if (p) {
-			p.promise.then(({ source }) => source.return()).catch();
-			p.reject(new Error("Key was never registered")); // no effect if p was already resolved
+		const state = this.#states.get(key);
+		if (state) {
+			if (state.value) {
+				state.value.return();
+			} else {
+				const inertState = new State();
+				inertState.return();
+				state.resolve(inertState);
+			}
 		}
 		this.#states.delete(key);
 	}
@@ -103,31 +135,33 @@ export class Context {
 	 * @param {AsyncGenerator<T, void>} source
 	 */
 	set(key, source) {
-		const state = new State();
-		forAwait(source, (s) => state.set(s));
-		this.#getOrCreateStatePromise(key).resolve({ source, state });
+		if (this.#getOrCreateStatePromise(key).value) {
+			this.remove(key);
+		}
+		const state = this.#getOrCreateStatePromise(key);
+		const newState = new State();
+		newState.source(source);
+		state.value = newState;
+		state.resolve(newState);
 	}
 
 	/**
 	 * @param {WeakKey} key
 	 * @returns {ReturnType<State<T>['subscribe']>} */
 	async *subscribe(key) {
-		yield* (await this.#getOrCreateStatePromise(key).promise).state.subscribe();
+		yield* (await this.#getOrCreateStatePromise(key).promise).subscribe();
 	}
 }
 
 /**
- * @template {AsyncIterable} T
- * @param {T} iter
- * @param {(state: T extends AsyncIterable<infer U> ? U : never) => void} callback
+ * @template T
+ * @param {AsyncGenerator<T>} iter
+ * @param {(state: T) => void | boolean} callback
  */
-export function forAwait(iter, callback) {
-	(async () => {
-		for await (const value of iter) {
-			callback(value);
-		}
-	})();
-	return iter;
+export async function forAwait(iter, callback) {
+	for await (const value of iter) {
+		if (callback(value)) break;
+	}
 }
 
 /**

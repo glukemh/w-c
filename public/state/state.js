@@ -1,28 +1,64 @@
 const initial = Symbol("initial state value");
 
+class StartingState {
+	get inert() {
+		return /** @type {const} */ (false);
+	}
+	/**
+	 * @template T
+	 * @param {T} value
+	 * @returns {ActiveState<T>}
+	 */
+	set(value) {
+		return new ActiveState(value);
+	}
+	makeInert() {
+		return new InertState();
+	}
+}
+
+/** @template T */
+class ActiveState {
+	/** @param {T} value */
+	constructor(value) {
+		this.value = value;
+	}
+	get inert() {
+		return /** @type {const} */ (false);
+	}
+	makeInert() {
+		return new InertState();
+	}
+}
+
+class InertState {
+	get inert() {
+		return /** @type {const} */ (true);
+	}
+}
+
+/**
+ * @template T
+ * @typedef {StartingState | ActiveState<T> | InertState} CurrentState
+ */
+
 /** @template T */
 export class State {
-	/** @type {PromiseWithResolvers<T | typeof initial>} */
+	/** @type {PromiseWithResolvers<T>} */
 	#nextState = Promise.withResolvers();
-	#current = {
-		value: /** @type {T | typeof initial} */ (initial),
-		promise: this.#nextState.promise,
-	};
+	#currentPromise = this.#nextState.promise;
+	/** @type {CurrentState<T>} */
+	#current = new StartingState();
+
+	// #current = {
+	// 	value: /** @type {T | typeof initial} */ (initial),
+	// 	promise: this.#nextState.promise,
+	// };
 	/** @type {((a: T, b: T) => boolean) | undefined} */
 	#skip;
 
-	#inert = false;
-
-	/** @returns {Promise<T>} */
 	get current() {
-		return new Promise(async (resolve, reject) => {
-			const value = await this.#current.promise;
-			if (value === initial) {
-				reject(new Error("State is inert"));
-				return;
-			}
-			resolve(value);
-		});
+		return this.#currentPromise;
 	}
 
 	/** @param {(a: T, b: T) => boolean} [skip] optionally return whether values are equal to skip resolves */
@@ -30,98 +66,118 @@ export class State {
 		this.#skip = skip;
 	}
 
-	/**
-	 * Set values.
-	 * @param {T} value
-	 * @returns {boolean} false if state is inert */
-	set(value) {
-		return this.#set(value);
-	}
-	/** @param {T | typeof initial} value */
+	/** @param {T} value */
 	#set(value) {
-		if (
-			(this.#current.value === initial ||
-				value === initial ||
-				!this.#skip?.(this.#current.value, value)) &&
-			!this.#inert
-		) {
-			this.#inert = value === initial;
-			this.#current.promise = this.#nextState.promise;
-			this.#current.value = value;
+		early: if (!this.#current.inert) {
+			if (this.#current instanceof StartingState) {
+				this.#current = this.#current.set(value);
+			} else if (this.#skip?.(this.#current.value, value)) {
+				break early;
+			} else {
+				this.#current.value = value;
+			}
+			this.#currentPromise = this.#nextState.promise;
 			this.#nextState.resolve(value);
 			this.#nextState = Promise.withResolvers();
 		}
-		return !this.#inert;
+		return this.#current;
 	}
 
 	/**
 	 * Returns all subscriptions. If signal is provided, then return when signal is aborted.
 	 * @param {AbortSignal} [signal] */
 	return(signal) {
-		if (this.#inert) return;
-		if (signal && !signal.aborted) {
-			signal.addEventListener("abort", () => this.#set(initial), {
-				once: true,
-			});
+		if (this.#current.inert) return;
+		const handler = () => {
+			if (this.#current.inert) return;
+			this.#current = this.#current.makeInert();
+			this.#nextState.reject(this.#current);
+		};
+		if (!signal || signal.aborted) {
+			handler();
 		} else {
-			this.#set(initial);
+			signal.addEventListener("abort", handler, { once: true });
 		}
-	}
-
-	/**
-	 * Update a value only after the first value has been set.
-	 * @param {(state: T) => T } updater
-	 * @returns {boolean} false if state is inert */
-	update(updater) {
-		if (this.#current.value !== initial) {
-			this.set(updater(this.#current.value));
-		}
-		return !this.#inert;
 	}
 
 	/**
 	 * Set state from source values returning if state becomes inert.
-	 * @param {AsyncGenerator<T>} source */
+	 * @param {AsyncGenerator<T> | (() => AsyncGenerator<T, void, T>)} source an async generator will be used to set values
+	 * while and async generator function will be used to update values based on the current value. If updating values based on
+	 * current, the first yielded value will be treated as a fallback value if initial state has not yet been set.
+	 */
 	async source(source) {
-		for await (const value of source) {
-			if (!this.set(value)) break;
+		if (typeof source === "function") {
+			const iter = source();
+			let next = await iter.next();
+			if (this.#current instanceof ActiveState) {
+				next = await iter.next(this.#current.value);
+			}
+			while (!next.done) {
+				const current = this.#set(next.value);
+				if (current.inert) break;
+				next = await iter.next(current.value);
+			}
+			iter.return();
+		} else {
+			for await (const value of source) {
+				if (this.#set(value).inert) break;
+			}
 		}
 	}
 
 	async *subscribe() {
-		await this.#current.promise;
-		while (this.#current.value !== initial) {
-			yield this.#current.value;
-			await this.#nextState.promise;
+		try {
+			await this.#currentPromise;
+			while (this.#current instanceof ActiveState) {
+				yield this.#current.value;
+				await this.#nextState.promise;
+			}
+		} catch (e) {
+			if (!(e instanceof InertState)) throw e;
 		}
+	}
+}
+
+/** @template T */
+class InitialContext {
+	/** @type {PromiseWithResolvers<State<T>>} */
+	#promise = Promise.withResolvers();
+	get promise() {
+		return this.#promise.promise;
+	}
+	/** @param {State<T>} value */
+	resolve(value) {
+		this.#promise.resolve(value);
+		return value;
+	}
+	/** @param {unknown} reason */
+	reject(reason) {
+		this.#promise.reject(reason);
 	}
 }
 
 /** @template T */
 export class Context {
 	/** @param {WeakKey} key */
-	#getOrCreateStatePromise(key) {
+	#getStateOrInitial(key) {
 		let p = this.#states.get(key);
 		if (!p) {
-			p = Promise.withResolvers();
+			p = new InitialContext();
 			this.#states.set(key, p);
 		}
 		return p;
 	}
-	/** @type {WeakMap<WeakKey, PromiseWithResolvers<State<T>> & { value?: State<T> }>} */
+	/** @type {WeakMap<WeakKey, InitialContext<T> | State<T>>} */
 	#states = new WeakMap();
 
 	/** @param {WeakKey} key */
 	remove(key) {
 		const state = this.#states.get(key);
-		if (state) {
-			if (state.value) {
-				state.value.return();
-			} else {
-				const inertState = new State();
-				inertState.return();
-				state.resolve(inertState);
-			}
+		if (state instanceof State) {
+			state.return();
+		} else if (state instanceof InitialContext) {
+			state.reject(state);
 		}
 		this.#states.delete(key);
 	}
@@ -131,21 +187,32 @@ export class Context {
 	 * @param {AsyncGenerator<T, void>} source
 	 */
 	set(key, source) {
-		if (this.#getOrCreateStatePromise(key).value) {
+		let state = this.#states.get(key);
+		if (state instanceof InitialContext) {
+			const newState = new State();
+			state.resolve(newState);
+			state = newState;
+		} else {
 			this.remove(key);
+			state = new State();
 		}
-		const state = this.#getOrCreateStatePromise(key);
-		const newState = new State();
-		newState.source(source);
-		state.value = newState;
-		state.resolve(newState);
+		state.source(source);
+		this.#states.set(key, state);
 	}
 
 	/**
 	 * @param {WeakKey} key
 	 * @returns {ReturnType<State<T>['subscribe']>} */
 	async *subscribe(key) {
-		yield* (await this.#getOrCreateStatePromise(key).promise).subscribe();
+		try {
+			let state = this.#getStateOrInitial(key);
+			if (state instanceof InitialContext) {
+				state = await state.promise;
+			}
+			yield* state.subscribe();
+		} catch (e) {
+			if (!(e instanceof InitialContext)) throw e;
+		}
 	}
 }
 

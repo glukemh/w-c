@@ -55,20 +55,16 @@ export class State {
 	}
 
 	/**
-	 * Returns all subscriptions.
-	 */
-	return() {
-		this.#set(initial);
-	}
-
-	/**
-	 * Returns all subscriptions when signal is aborted.
-	 * @param {AbortSignal} signal */
-	returnOn(signal) {
-		if (signal.aborted) {
-			this.return();
+	 * Returns all subscriptions. If signal is provided, then return when signal is aborted.
+	 * @param {AbortSignal} [signal] */
+	return(signal) {
+		if (this.#inert) return;
+		if (signal && !signal.aborted) {
+			signal.addEventListener("abort", () => this.#set(initial), {
+				once: true,
+			});
 		} else {
-			signal.addEventListener("abort", () => this.return(), { once: true });
+			this.#set(initial);
 		}
 	}
 

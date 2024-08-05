@@ -116,17 +116,21 @@ class State {
 			console.error(e);
 		}
 	}
+
 	/**
-	 * Update state based on previous. Skips if initial state has not yet been set.
-	 * @param {AsyncGenerator<(current: T) => T> | (() => AsyncGenerator<(current: T) => T>)} source set value from yielded function
+	 * Update state based on previous.
+	 * @param {AsyncGenerator<(current: T) => T> | (() => AsyncGenerator<(current: T) => T>)} source yield functions to update state
+	 * @param {T} initial initial value to use if state is not already set.
 	 */
-	async dynamic(source) {
+	async dynamic(initial, source) {
 		try {
+			if (this.#current instanceof StartingState) {
+				this.#set(initial);
+			}
 			const iter = typeof source === "function" ? source() : source;
-			for await (const update of iter) {
-				if (this.#current.inert) break;
-				if (this.#current instanceof StartingState) continue;
-				this.#set(update(this.#current.value));
+			for await (const f of iter) {
+				if (!(this.#current instanceof ActiveState)) break;
+				this.#set(f(this.#current.value));
 			}
 		} catch (e) {
 			console.error(e);

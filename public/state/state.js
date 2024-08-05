@@ -207,7 +207,7 @@ class Context {
 			this.remove(key);
 			state = new State();
 		}
-		state.source(source);
+		state.from(source);
 		this.#states.set(key, state);
 	}
 

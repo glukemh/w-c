@@ -104,27 +104,32 @@ class State {
 
 	/**
 	 * Set state from source values returning if state becomes inert.
-	 * @param {AsyncGenerator<T> | (() => AsyncGenerator<T, void, T>)} source an async generator will be used to set values
-	 * while and async generator function will be used to update values based on the current value. If updating values based on
-	 * current, the first yielded value will be treated as a fallback value if initial state has not yet been set.
+	 * @param {AsyncGenerator<T> | (() => AsyncGenerator<T>)} source set from yielded values
 	 */
-	async source(source) {
-		if (typeof source === "function") {
-			const iter = source();
-			let next = await iter.next();
-			if (this.#current instanceof ActiveState) {
-				next = await iter.next(this.#current.value);
-			}
-			while (!next.done) {
-				const current = this.#set(next.value);
-				if (current.inert) break;
-				next = await iter.next(current.value);
-			}
-			iter.return();
-		} else {
-			for await (const value of source) {
+	async from(source) {
+		try {
+			const iter = typeof source === "function" ? source() : source;
+			for await (const value of iter) {
 				if (this.#set(value).inert) break;
 			}
+		} catch (e) {
+			console.error(e);
+		}
+	}
+	/**
+	 * Update state based on previous. Skips if initial state has not yet been set.
+	 * @param {AsyncGenerator<(current: T) => T> | (() => AsyncGenerator<(current: T) => T>)} source set value from yielded function
+	 */
+	async dynamic(source) {
+		try {
+			const iter = typeof source === "function" ? source() : source;
+			for await (const update of iter) {
+				if (this.#current.inert) break;
+				if (this.#current instanceof StartingState) continue;
+				this.#set(update(this.#current.value));
+			}
+		} catch (e) {
+			console.error(e);
 		}
 	}
 

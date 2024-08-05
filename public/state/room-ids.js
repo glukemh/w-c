@@ -3,9 +3,12 @@ import { search, appendSearch, deleteSearch } from "/state/route.js";
 
 /** @type {State<Set<string>>} */
 const roomIdsState = new State((a, b) => a.isSubsetOf(b) && b.isSubsetOf(a));
-forAwait(search(), (search) => {
-	roomIdsState.set(new Set(search.getAll("room-id")));
+roomIdsState.from(async function* () {
+	for await (const s of search()) {
+		yield new Set(s.getAll("room-id"));
+	}
 });
+
 export function roomIds() {
 	return roomIdsState.subscribe();
 }

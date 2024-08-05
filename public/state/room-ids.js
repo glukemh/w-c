@@ -1,4 +1,4 @@
-import { State, derive, forAwait, Context } from "/state/state.js";
+import { State, Context } from "/state/state.js";
 import { search, appendSearch, deleteSearch } from "/state/route.js";
 
 /** @type {State<Set<string>>} */
@@ -40,4 +40,9 @@ export function setRoomIdIterFor(key) {
 /** @param {WeakKey} key */
 export function removeRoomIdIterFor(key) {
 	roomIdIterContext.remove(key);
+}
+
+/** @param {WeakKey} key */
+export function roomIdIterFor(key) {
+	return roomIdIterContext.subscribe(key);
 }

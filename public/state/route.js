@@ -1,10 +1,14 @@
-import { State, forAwait } from "/state/state.js";
+import { State } from "/state/state.js";
 
 /** @type {State<URL>} */
 const locationState = new State((a, b) => a.href === b.href);
-locationState.set(new URL(window.location.href));
-window.addEventListener("popstate", () => {
-	locationState.set(new URL(window.location.href));
+locationState.from(async function* () {
+	while (true) {
+		await new Promise((resolve) => {
+			window.addEventListener("popstate", resolve, { once: true });
+		});
+		yield new URL(window.location.href);
+	}
 });
 
 export async function* location() {
@@ -13,9 +17,10 @@ export async function* location() {
 
 /** @type {State<URLSearchParams>} */
 const searchState = new State((a, b) => a.toString() === b.toString());
-
-forAwait(location(), (loc) => {
-	searchState.set(loc.searchParams);
+searchState.from(async function* () {
+	for await (const loc of location()) {
+		yield loc.searchParams;
+	}
 });
 
 export async function* search() {

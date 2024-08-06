@@ -117,23 +117,27 @@ class State {
 		}
 	}
 
-	// * @template {{ [P in keyof ET as P extends `on${K}` ? `on${K}`  : never]: ET[P] extends (ev: infer E) => any ? E : never }} E
 	/**
-	 *
 	 * @template {EventTarget} ET
 	 * @template {keyof ET} K
-	 * @template {(K extends `on${infer Type}` ? Type : never) | string} Type
+	 * @template {K extends `on${infer Type}` ? Type : never} Type
 	 * @template {K extends `on${Type}` ? (Exclude<ET[K], null> extends (ev: infer E) => any ? E : 1) : 1} E
+	 * @overload
 	 * @param {ET} target
 	 * @param {Type} type
 	 * @param {(getEvent: () => Promise<Exclude<E, 1> extends never ? Event : Exclude<E, 1>>) => AsyncGenerator<T>} source
+	 * @param {AddEventListenerOptions} [options]
+	 */ /**
+	 * @template {EventTarget} ET
+	 * @param {ET} target
+	 * @param {string} type
+	 * @param {(getEvent: () => Promise<Event>) => AsyncGenerator<T>} source
 	 * @param {AddEventListenerOptions} [options]
 	 */
 	async fromEvent(target, type, source, options = {}) {
 		const controller = new AbortController();
 		try {
 			const p = Promise.withResolvers();
-			/** @type {Exclude<E, 1> extends never ? Event : Exclude<E, 1>} */
 			let event;
 			target.addEventListener(type, (e) => p.resolve((event = e)), {
 				signal: controller.signal,

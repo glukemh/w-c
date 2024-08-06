@@ -9,9 +9,7 @@ locationState.fromEvent(window, "popstate", async function* (getEvent) {
 		yield new URL(window.location.href);
 	}
 });
-window.addEventListener("popstate", (e) => {
-	e.state;
-});
+
 locationState.from(async function* () {
 	const controller = new AbortController();
 	try {

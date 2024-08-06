@@ -127,9 +127,10 @@ class State {
 	 * @param {Type} type
 	 * @param {(getEvent: () => Promise<Exclude<E, 1> extends never ? Event : Exclude<E, 1>>) => AsyncGenerator<T>} source
 	 * @param {AddEventListenerOptions} [options]
-	 */ /**
-	 * @template {EventTarget} ET
-	 * @param {ET} target
+	 */
+	/**
+	 * @overload
+	 * @param {EventTarget} target
 	 * @param {string} type
 	 * @param {(getEvent: () => Promise<Event>) => AsyncGenerator<T>} source
 	 * @param {AddEventListenerOptions} [options]

@@ -117,6 +117,38 @@ class State {
 		}
 	}
 
+	// * @template {{ [P in keyof ET as P extends `on${K}` ? `on${K}`  : never]: ET[P] extends (ev: infer E) => any ? E : never }} E
+	/**
+	 *
+	 * @template {EventTarget} ET
+	 * @template {keyof ET} K
+	 * @template {(K extends `on${infer Type}` ? Type : never) | string} Type
+	 * @template {K extends `on${Type}` ? (Exclude<ET[K], null> extends (ev: infer E) => any ? E : 1) : 1} E
+	 * @param {ET} target
+	 * @param {Type} type
+	 * @param {(getEvent: () => Promise<Exclude<E, 1> extends never ? Event : Exclude<E, 1>>) => AsyncGenerator<T>} source
+	 * @param {AddEventListenerOptions} [options]
+	 */
+	async fromEvent(target, type, source, options = {}) {
+		const controller = new AbortController();
+		try {
+			const p = Promise.withResolvers();
+			/** @type {Exclude<E, 1> extends never ? Event : Exclude<E, 1>} */
+			let event;
+			target.addEventListener(type, (e) => p.resolve((event = e)), {
+				signal: controller.signal,
+				...options,
+			});
+			for await (const value of source(() => p.promise.then(() => event))) {
+				if (this.#set(value).inert) break;
+			}
+		} catch (e) {
+			console.error(e);
+		} finally {
+			controller.abort();
+		}
+	}
+
 	/**
 	 * Update state based on previous.
 	 * @param {AsyncGenerator<(current: T) => T> | (() => AsyncGenerator<(current: T) => T>)} source yield functions to update state

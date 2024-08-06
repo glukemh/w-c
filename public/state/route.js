@@ -2,12 +2,31 @@ import { State } from "/state/state.js";
 
 /** @type {State<URL>} */
 const locationState = new State((a, b) => a.href === b.href);
-locationState.from(async function* () {
+locationState.fromEvent(window, "popstate", async function* (getEvent) {
 	while (true) {
-		await new Promise((resolve) => {
-			window.addEventListener("popstate", resolve, { once: true });
-		});
+		const e = await getEvent();
+		e.state;
 		yield new URL(window.location.href);
+	}
+});
+window.addEventListener("popstate", (e) => {
+	e.state;
+});
+locationState.from(async function* () {
+	const controller = new AbortController();
+	try {
+		let p = Promise.withResolvers();
+		window.addEventListener("popstate", (e) => p.resolve(e), {
+			signal: controller.signal,
+		});
+		while (await p.promise) {
+			p = Promise.withResolvers();
+			yield new URL(window.location.href);
+		}
+	} catch (e) {
+		console.error(e);
+	} finally {
+		controller.abort();
 	}
 });
 

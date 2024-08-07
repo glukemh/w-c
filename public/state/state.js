@@ -41,6 +41,16 @@ class InertState {
 
 /**
  * @template T
+ * @typedef {() => AsyncGenerator<T>} Setter
+ */
+
+/**
+ * @template T
+ * @typedef {() => AsyncGenerator<(current: T) => T>} Updater
+ */
+
+/**
+ * @template T
  * @typedef {StartingState | ActiveState<T> | InertState} CurrentState
  */
 
@@ -119,13 +129,13 @@ class State {
 
 	/**
 	 * @template {EventTarget} ET
-	 * @template {keyof ET} K
+	 * @template {`on${string}` & keyof ET} K
 	 * @template {K extends `on${infer Type}` ? Type : never} Type
-	 * @template {K extends `on${Type}` ? (Exclude<ET[K], null> extends (ev: infer E) => any ? E : 1) : 1} E
+	 * @template {K extends `on${Type}` ? (Exclude<ET[K], null> extends (ev: infer E) => any ? E : never) : never} E
 	 * @overload
 	 * @param {ET} target
 	 * @param {Type} type
-	 * @param {(getEvent: () => Promise<Exclude<E, 1> extends never ? Event : Exclude<E, 1>>) => AsyncGenerator<T>} source
+	 * @param {(getEvent: () => Promise<E>) => AsyncGenerator<T>} source
 	 * @param {AddEventListenerOptions} [options]
 	 */
 	/**
@@ -135,7 +145,13 @@ class State {
 	 * @param {(getEvent: () => Promise<Event>) => AsyncGenerator<T>} source
 	 * @param {AddEventListenerOptions} [options]
 	 */
-	async fromEvent(target, type, source, options = {}) {
+	/**
+	 * @param {EventTarget} target
+	 * @param {string} type
+	 * @param {(getEvent: () => Promise<Event>) => AsyncGenerator<T>} source
+	 * @param {AddEventListenerOptions} [options]
+	 */
+	async fromEvent(target, type, source, options) {
 		const controller = new AbortController();
 		try {
 			const p = Promise.withResolvers();

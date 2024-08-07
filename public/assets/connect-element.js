@@ -7,18 +7,28 @@ export const connectElementMixin = (Base) => {
 	 * @extends {Base}
 	 */
 	class ConnectElement extends Base {
-		#onDisconnect = () => {};
-		/** @abstract */
-		onConnect() {
-			return () => {};
+		/** @type {(Generator<any, void, void> | AsyncGenerator<any, void, void>)[]} */
+		#iters = [];
+		#connectController = new AbortController();
+		get connectSignal() {
+			return this.#connectController.signal;
 		}
-		connectedCallback() {
-			super["connectedCallback"]?.();
-			this.#onDisconnect = this.onConnect();
+		/**
+		 * @template {Generator<any, void, void> | AsyncGenerator<any, void, void>} T
+		 * @param {T} iterToReturn
+		 * @returns {T} */
+		iter(iterToReturn) {
+			this.#iters.push(iterToReturn);
+			return iterToReturn;
 		}
 		disconnectedCallback() {
 			super["disconnectedCallback"]?.();
-			this.#onDisconnect();
+			this.#connectController.abort();
+			this.#connectController = new AbortController();
+			for (const iter of this.#iters) {
+				iter.return();
+			}
+			this.#iters = [];
 		}
 	}
 	return ConnectElement;

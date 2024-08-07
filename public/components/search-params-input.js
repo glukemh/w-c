@@ -1,21 +1,20 @@
-import { search } from "/state/route.js";
-import { forAwait } from "/state/state.js";
+import { queryParams } from "/state/query-params.js";
 import ConnectElement from "/assets/connect-element.js";
 
 export default class SearchParamsInput extends ConnectElement {
 	static formAssociated = true;
 	#internals = this.attachInternals();
-	onConnect() {
-		const searchIter = forAwait(search(), (s) => {
+	async queryParams() {
+		for await (const s of this.iter(queryParams())) {
 			const formData = new FormData();
 			for (const [name, value] of s.entries()) {
 				formData.append(name, value);
 			}
 			this.#internals.setFormValue(formData);
-		});
-		return () => {
-			searchIter.return();
-		};
+		}
+	}
+	connectedCallback() {
+		this.queryParams();
 	}
 }
 

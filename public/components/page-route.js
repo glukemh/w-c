@@ -1,4 +1,4 @@
-import { location } from "/state/route.js";
+import { location } from "/state/location.js";
 
 export default class PageRoute extends HTMLElement {
 	locationSubscription = location();

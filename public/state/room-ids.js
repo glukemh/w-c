@@ -1,10 +1,11 @@
+/** @import { Setter, Updater } from "/state/state.js" */
 import { State, Context } from "/state/state.js";
-import { search, appendSearch, deleteSearch } from "/state/route.js";
+import { queryParams, updateQueryParams } from "/state/query-params.js";
 
 /** @type {State<Set<string>>} */
 const roomIdsState = new State((a, b) => a.isSubsetOf(b) && b.isSubsetOf(a));
 roomIdsState.from(async function* () {
-	for await (const s of search()) {
+	for await (const s of queryParams()) {
 		yield new Set(s.getAll("room-id"));
 	}
 });
@@ -13,16 +14,28 @@ export function roomIds() {
 	return roomIdsState.subscribe();
 }
 
-/** @param {Iterable<string>} newIds */
-export function addRooms(newIds) {
-	appendSearch(new URLSearchParams([...newIds].map((id) => ["room-id", id])));
+/** @param {Setter<Set<string>>} roomIds */
+export function setRoomIds(roomIds) {
+	updateQueryParams(async function* () {
+		for await (const ids of roomIds()) {
+			yield (search) => {
+				search.delete("room-id");
+				for (const id of ids) {
+					search.append("room-id", id);
+				}
+				return search;
+			};
+		}
+	});
 }
 
-/** @param {Iterable<string>} removeIds */
-export function removeRooms(removeIds) {
-	deleteSearch(
-		new URLSearchParams([...removeIds].map((id) => ["room-id", id]))
-	);
+/** @param {Updater<Set<string>>} updates */
+export function updateRoomIds(updates) {
+	setRoomIds(async function* () {
+		for await (const update of updates()) {
+			yield update(await roomIdsState.current);
+		}
+	});
 }
 
 /** @type {Context<BuiltinIterator<string>>} */

@@ -54,6 +54,11 @@ class InertState {
  * @typedef {StartingState | ActiveState<T> | InertState} CurrentState
  */
 
+/**
+ * @template T
+ * @typedef {(a: T, b: T) => boolean} Skip
+ */
+
 /** @template T */
 class State {
 	/** @type {PromiseWithResolvers<T>} */
@@ -66,14 +71,14 @@ class State {
 	// 	value: /** @type {T | typeof initial} */ (initial),
 	// 	promise: this.#nextState.promise,
 	// };
-	/** @type {((a: T, b: T) => boolean) | undefined} */
+	/** @type {Skip<T> | undefined} */
 	#skip;
 
 	get current() {
 		return this.#currentPromise;
 	}
 
-	/** @param {(a: T, b: T) => boolean} [skip] optionally return whether values are equal to skip resolves */
+	/** @param {Skip<T>} [skip] optionally return whether values are equal to skip resolves */
 	constructor(skip) {
 		this.#skip = skip;
 	}
@@ -114,12 +119,11 @@ class State {
 
 	/**
 	 * Set state from source values returning if state becomes inert.
-	 * @param {AsyncGenerator<T> | (() => AsyncGenerator<T>)} source set from yielded values
+	 * @param {Setter<T>} source set from yielded values
 	 */
 	async from(source) {
 		try {
-			const iter = typeof source === "function" ? source() : source;
-			for await (const value of iter) {
+			for await (const value of source()) {
 				if (this.#set(value).inert) break;
 			}
 		} catch (e) {
@@ -172,16 +176,15 @@ class State {
 
 	/**
 	 * Update state based on previous.
-	 * @param {AsyncGenerator<(current: T) => T> | (() => AsyncGenerator<(current: T) => T>)} source yield functions to update state
 	 * @param {T} initial initial value to use if state is not already set.
+	 * @param {Updater<T>} source yield functions to update state
 	 */
-	async dynamic(initial, source) {
+	async update(source, initial) {
 		try {
 			if (this.#current instanceof StartingState) {
 				this.#set(initial);
 			}
-			const iter = typeof source === "function" ? source() : source;
-			for await (const f of iter) {
+			for await (const f of source()) {
 				if (!(this.#current instanceof ActiveState)) break;
 				this.#set(f(this.#current.value));
 			}
@@ -223,6 +226,9 @@ class InitialContext {
 
 /** @template T */
 class Context {
+	/** @type {WeakMap<WeakKey, InitialContext<T> | State<T>>} */
+	#states = new WeakMap();
+
 	/** @param {WeakKey} key */
 	#getStateOrInitial(key) {
 		let p = this.#states.get(key);
@@ -232,8 +238,25 @@ class Context {
 		}
 		return p;
 	}
-	/** @type {WeakMap<WeakKey, InitialContext<T> | State<T>>} */
-	#states = new WeakMap();
+
+	#getOrResolveState(key) {
+		let state = this.#getStateOrInitial(key);
+		if (state instanceof InitialContext) {
+			const newState = new State(this.#skip);
+			state.resolve(newState);
+			state = newState;
+		}
+		this.#states.set(key, state);
+		return state;
+	}
+
+	/** @type {Skip<T> | undefined} */
+	#skip;
+
+	/** @param {Skip<T>} [skip] */
+	constructor(skip) {
+		this.#skip = skip;
+	}
 
 	/** @param {WeakKey} key */
 	remove(key) {
@@ -248,20 +271,21 @@ class Context {
 
 	/**
 	 * @param {WeakKey} key
-	 * @param {AsyncGenerator<T, void>} source
+	 * @param {Setter<T>} source
 	 */
-	set(key, source) {
-		let state = this.#states.get(key);
-		if (state instanceof InitialContext) {
-			const newState = new State();
-			state.resolve(newState);
-			state = newState;
-		} else {
-			this.remove(key);
-			state = new State();
-		}
+	from(key, source) {
+		const state = this.#getOrResolveState(key);
 		state.from(source);
-		this.#states.set(key, state);
+	}
+
+	/**
+	 * @param {WeakKey} key
+	 * @param {Updater<T>} source
+	 * @param {T} initial
+	 */
+	update(key, source, initial) {
+		const state = this.#getOrResolveState(key);
+		state.update(source, initial);
 	}
 
 	/**

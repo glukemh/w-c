@@ -73,7 +73,7 @@ export function provideRoomId(key, context) {
 		done: true,
 		value: "",
 	});
-	roomIdContext.from(key, () => roomIdIterResultContext.subscribe(context));
+	roomIdContext.from(key, () => roomIdIterResultContext.subscribe(key));
 	return () => {
 		roomIdIterResultContext.remove(key);
 		roomIdContext.remove(key);

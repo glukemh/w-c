@@ -19,8 +19,17 @@ export function location() {
 /** @param {Setter<URL>} urls */
 export async function setLocation(urls) {
 	for await (const url of urls()) {
-		window.history.pushState({}, "", url);
-		window.dispatchEvent(new PopStateEvent("popstate"));
+		const current = new URL(await locationState.current);
+		if (current.hash !== url.hash) {
+			// trigger hash change if hash is different
+			const nextHash = url.hash;
+			url.hash = current.hash;
+			window.history.pushState({}, "", url);
+			window.location.hash = nextHash;
+		} else {
+			window.history.pushState({}, "", url);
+			window.dispatchEvent(new PopStateEvent("popstate"));
+		}
 	}
 }
 

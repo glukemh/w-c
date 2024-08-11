@@ -52,7 +52,6 @@ export function provideRoomIds(key) {
 
 async function* roomIdIterSetter() {
 	for await (const ids of roomIds()) {
-		console.debug("roomIdIterSetter", ids);
 		yield new Set(ids);
 	}
 }

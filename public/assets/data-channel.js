@@ -110,7 +110,6 @@ export default class DataChannel extends EventTarget {
 	 * @param {string} data
 	 */
 	sendData(data) {
-		console.debug("sending data", data);
 		if (this.#channel?.readyState === "open") {
 			this.#channel.send(data);
 		} else {

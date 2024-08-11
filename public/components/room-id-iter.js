@@ -5,16 +5,25 @@ import RoomIds from "/components/room-ids.js";
 export default class RoomIdIter extends ConnectElement {
 	/** @type {RoomIdIter | undefined} */
 	#nextSibling;
+	#internals = this.attachInternals();
+	root = true;
 	async connectNextSibling() {
-		console.debug("connectNextSibling");
 		for await (const result of this.whileConnected(roomIdIterResult(this))) {
-			console.debug("result", result);
 			if (result.done) {
-				this.remove();
-				break;
+				this.#internals.states.add("empty");
+				if (this.root) {
+					// keep root connected to listen to room id changes
+					continue;
+				} else {
+					this.remove();
+					break;
+				}
+			} else {
+				this.#internals.states.delete("empty");
 			}
 			if (!this.#nextSibling) {
 				this.#nextSibling = /** @type {RoomIdIter} */ (this.cloneNode(true));
+				this.#nextSibling.root = false;
 			}
 			if (!this.#nextSibling.isConnected) {
 				this.after(this.#nextSibling);

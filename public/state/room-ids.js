@@ -50,38 +50,44 @@ export function roomId(context) {
 	return roomIdContext.subscribe(context);
 }
 
-/** @param {WeakKey} key */
+/**
+ * @param {WeakKey} key
+ * @returns {() => void} remove provider */
 export function provideRoomIdIter(key) {
-	roomIdIterContext.from(key, async function* () {
-		for await (const ids of roomIds()) {
-			yield new Set(ids);
-		}
-	});
+	roomIdIterContext.from(key, roomIdIterSetter);
+	return () => roomIdIterContext.remove(key);
+}
+
+async function* roomIdIterSetter() {
+	for await (const ids of roomIds()) {
+		yield new Set(ids);
+	}
 }
 
 /**
  * @param {WeakKey} key
- * @param {WeakKey} context */
+ * @param {WeakKey} context
+ * @returns {() => void} remove provider */
 export function provideRoomId(key, context) {
-	roomIdContext.update(
-		key,
-		async function* () {
-			const subscription = roomIdIterContext.subscribe(context);
-			for await (const ids of subscription) {
-				yield (current) => {
-					if (!ids.has(current)) {
-						const { value, done } = ids.values().next();
-						if (done) {
-							subscription.return();
-							return "";
-						}
-						current = value;
-					}
-					ids.delete(current);
-					return current;
-				};
+	roomIdContext.update(key, () => idUpdater(context), "");
+	return () => roomIdContext.remove(key);
+}
+
+/** @param {WeakKey} context */
+async function* idUpdater(context) {
+	const subscription = roomIdIterContext.subscribe(context);
+	for await (const ids of subscription) {
+		yield (current) => {
+			if (!ids.has(current)) {
+				const { value, done } = ids.values().next();
+				if (done) {
+					subscription.return();
+					return "";
+				}
+				current = value;
 			}
-		},
-		""
-	);
+			ids.delete(current);
+			return current;
+		};
+	}
 }

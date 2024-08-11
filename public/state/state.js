@@ -239,6 +239,7 @@ class Context {
 		return p;
 	}
 
+	/** @param {WeakKey} key */
 	#getOrResolveState(key) {
 		let state = this.#getStateOrInitial(key);
 		if (state instanceof InitialContext) {
@@ -274,8 +275,7 @@ class Context {
 	 * @param {Setter<T>} source
 	 */
 	from(key, source) {
-		const state = this.#getOrResolveState(key);
-		state.from(source);
+		this.#getOrResolveState(key).from(source);
 	}
 
 	/**
@@ -284,8 +284,7 @@ class Context {
 	 * @param {T} initial
 	 */
 	update(key, source, initial) {
-		const state = this.#getOrResolveState(key);
-		state.update(source, initial);
+		this.#getOrResolveState(key).update(source, initial);
 	}
 
 	/**

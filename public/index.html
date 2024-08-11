@@ -18,10 +18,10 @@
 
   @scope (body) to (main > *) {
     & {
+      --body-gutter: 16px;
       display: grid;
-      grid-template-columns: 16px minmax(0, 1fr) 16px;
+      grid-template-columns: var(--body-gutter) minmax(0, 1fr) var(--body-gutter);
       grid-template-rows: min-content;
-      align-items: start;
 
       >* {
         grid-column: 2;
@@ -102,16 +102,55 @@
 <main id="rooms">
   <style>
     @scope {
-      room-id-iter {
-        display: block;
+      :scope {
+        container-type: inline-size;
+        margin: 0 calc(var(--body-gutter) * -1);
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        min-width: 0;
+
+        &::before,
+        &::after {
+          content: '';
+          flex: 0 0 50%;
+        }
+
+        >* {
+          flex: 0 0 auto;
+          width: max-content;
+        }
       }
+
+      room-ids {
+        box-sizing: border-box;
+        display: grid;
+        padding: 16px;
+        grid-auto-flow: column;
+        grid-auto-columns: min(100ch, 90cqi);
+        gap: min(3cqi, 16px);
+        height: 100%;
+      }
+
+      h2 {
+        text-align: center;
+      }
+
+      room-id-iter {
+        scroll-snap-align: center;
+        border: 1px solid var(--color-button-border);
+        border-radius: 10px;
+
+        &:state(empty) {
+          display: none;
+        }
+      }
+
     }
   </style>
-  <nav>
-  </nav>
   <room-ids role="list">
     <room-id-iter role="listitem">
-      Connected to room <room-id></room-id>
+      <h2><room-id></room-id></h2>
     </room-id-iter>
   </room-ids>
 </main>

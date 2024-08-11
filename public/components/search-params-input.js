@@ -5,7 +5,7 @@ export default class SearchParamsInput extends ConnectElement {
 	static formAssociated = true;
 	#internals = this.attachInternals();
 	async queryParams() {
-		for await (const s of this.iter(queryParams())) {
+		for await (const s of this.whileConnected(queryParams())) {
 			const formData = new FormData();
 			for (const [name, value] of s.entries()) {
 				formData.append(name, value);

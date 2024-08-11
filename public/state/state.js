@@ -226,6 +226,8 @@ class InitialContext {
 
 /** @template T */
 class Context {
+	static rootKey = Symbol("root context key");
+
 	/** @type {WeakMap<WeakKey, InitialContext<T> | State<T>>} */
 	#states = new WeakMap();
 

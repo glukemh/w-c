@@ -43,9 +43,7 @@ const roomIdIterContext = new Context();
 /** @type {Context<string>} */
 const roomIdContext = new Context((a, b) => a === b);
 
-/**
- * @param {WeakKey} context
- */
+/** @param {WeakKey} context */
 export function roomId(context) {
 	return roomIdContext.subscribe(context);
 }
@@ -77,7 +75,7 @@ export function provideRoomId(key, context) {
 async function* idUpdater(context) {
 	const subscription = roomIdIterContext.subscribe(context);
 	for await (const ids of subscription) {
-		yield (current) => {
+		yield /** @param {string} current */ (current) => {
 			if (!ids.has(current)) {
 				const { value, done } = ids.values().next();
 				if (done) {

@@ -14,12 +14,13 @@ export const connectElementMixin = (Base) => {
 			return this.#connectController.signal;
 		}
 		/**
+		 * Return from iter when disconnected.
 		 * @template {Generator<any, void, void> | AsyncGenerator<any, void, void>} T
-		 * @param {T} iterToReturn
+		 * @param {T} iter
 		 * @returns {T} */
-		iter(iterToReturn) {
-			this.#iters.push(iterToReturn);
-			return iterToReturn;
+		whileConnected(iter) {
+			this.#iters.push(iter);
+			return iter;
 		}
 		disconnectedCallback() {
 			super["disconnectedCallback"]?.();

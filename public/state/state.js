@@ -181,12 +181,13 @@ class State {
 	 */
 	async update(source, initial) {
 		try {
-			if (this.#current instanceof StartingState) {
-				this.#set(initial);
-			}
 			for await (const f of source()) {
-				if (!(this.#current instanceof ActiveState)) break;
-				this.#set(f(this.#current.value));
+				if (this.#current instanceof ActiveState) {
+					initial = this.#current.value;
+				} else if (this.#current instanceof InertState) {
+					break;
+				}
+				this.#set(f(initial));
 			}
 		} catch (e) {
 			console.error(e);

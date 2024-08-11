@@ -38,49 +38,50 @@ export function updateRoomIds(updates) {
 	});
 }
 
-class RoomIdContext {
-	/** @type {WeakMap<WeakKey, Map<string, Set<string>>>} */
-	scopes = new WeakMap();
-	/** @param {Set<string>} roomIds */
-	constructor(roomIds) {
-		this.roomIds = roomIds;
-	}
+/** @type {Context<Set<string>>} */
+const roomIdIterContext = new Context();
+/** @type {Context<string>} */
+const roomIdContext = new Context((a, b) => a === b);
+
+/**
+ * @param {WeakKey} context
+ */
+export function roomId(context) {
+	return roomIdContext.subscribe(context);
 }
 
-/** @type {State<RoomIdContext>} */
-const roomIdContext = new State();
-roomIdContext.from(async function* () {
-	for await (const rooms of roomIds()) {
-		yield new RoomIdContext(rooms);
-	}
-});
+/** @param {WeakKey} key */
+export function provideRoomIdIter(key) {
+	roomIdIterContext.from(key, async function* () {
+		for await (const ids of roomIds()) {
+			yield new Set(ids);
+		}
+	});
+}
 
 /**
  * @param {WeakKey} key
- * @param {string} name
- */
-export async function* roomId(key, name) {
-	let current = "";
-	for await (const context of roomIdContext.subscribe()) {
-		let map = context.scopes.get(key);
-		if (!map) {
-			map = new Map();
-			context.scopes.set(key, map);
-			map.set(name, new Set(context.roomIds));
-		}
-
-		let ids = map.get(name);
-		if (!ids) {
-			ids = new Set(context.roomIds);
-			map.set(name, ids);
-		}
-		if (ids.size && !ids.has(current)) {
-			current = /** @type {string} */ (ids.values().next().value);
-		} else {
-			return;
-		}
-		ids.delete(current);
-
-		yield /** @type {const} */ ([current, ids.size]);
-	}
+ * @param {WeakKey} context */
+export function provideRoomId(key, context) {
+	roomIdContext.update(
+		key,
+		async function* () {
+			const subscription = roomIdIterContext.subscribe(context);
+			for await (const ids of subscription) {
+				yield (current) => {
+					if (!ids.has(current)) {
+						const { value, done } = ids.values().next();
+						if (done) {
+							subscription.return();
+							return "";
+						}
+						current = value;
+					}
+					ids.delete(current);
+					return current;
+				};
+			}
+		},
+		""
+	);
 }

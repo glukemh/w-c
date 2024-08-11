@@ -48,30 +48,33 @@
 <header>
   <style>
     @scope {
-      & {
+      nav {
+        text-align: center;
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x proximity;
+        scrollbar-width: thin;
+        scrollbar-gutter: stable both-edges;
+        justify-content: center;
+      }
+
+      ul {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: max-content;
+        gap: 1em;
+        max-width: 100%;
+        padding-block: 0.5em;
         text-align: center;
 
-        ul {
-          display: inline flex;
-          gap: 1em;
-          max-width: 100%;
-          overflow-x: auto;
-          scroll-snap-type: x proximity;
-          scrollbar-width: thin;
-          scrollbar-gutter: stable both-edges;
-          padding-block: 0.5em;
-          text-align: center;
-
-          >* {
-            flex-shrink: 0;
-            scroll-snap-align: center;
-          }
+        >* {
+          scroll-snap-align: center;
         }
+      }
 
-        @media (hover: none) {
-          ul {
-            scrollbar-width: none;
-          }
+      @media (hover: none) {
+        ul {
+          scrollbar-width: none;
         }
       }
     }

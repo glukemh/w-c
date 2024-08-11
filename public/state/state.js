@@ -158,12 +158,19 @@ class State {
 	async fromEvent(target, type, source, options) {
 		const controller = new AbortController();
 		try {
-			const p = Promise.withResolvers();
+			let p = Promise.withResolvers();
 			let event;
-			target.addEventListener(type, (e) => p.resolve((event = e)), {
-				signal: controller.signal,
-				...options,
-			});
+			target.addEventListener(
+				type,
+				(e) => {
+					p.resolve((event = e));
+					p = Promise.withResolvers();
+				},
+				{
+					signal: controller.signal,
+					...options,
+				}
+			);
 			for await (const value of source(() => p.promise.then(() => event))) {
 				if (this.#set(value).inert) break;
 			}

@@ -3,6 +3,9 @@ import { State } from "/state/state.js";
 
 /** @type {State<URL>} */
 const locationState = new State((a, b) => a.href === b.href);
+locationState.from(async function* () {
+	yield new URL(window.location.href);
+});
 locationState.fromEvent(window, "popstate", async function* (getEvent) {
 	while (await getEvent()) {
 		yield new URL(window.location.href);

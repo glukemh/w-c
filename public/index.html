@@ -6,6 +6,9 @@
 <link rel="manifest" href="manifest.json">
 <script src="assets/app.js" type="module"></script>
 <script src="components/submit-to-history.js" type="module"></script>
+<script src="components/room-ids.js" type="module"></script>
+<script src="components/room-id-iter.js" type="module"></script>
+<script src="components/room-id.js" type="module"></script>
 <style>
   @import url(assets/global.css) layer(base);
   @import url(assets/list.css) layer(base);
@@ -98,21 +101,19 @@
 </main>
 <main id="rooms">
   <style>
+    @scope {
+      room-id-iter {
+        display: block;
+      }
+    }
   </style>
   <nav>
-    <saved-rooms>
-      <template>
-        <in-context>
-          <h1><room-id></room-id></h1>
-        </in-context>
-      </template>
-    </saved-rooms>
   </nav>
-  <saved-rooms>
-    <template>
-      <h1></h1>
-    </template>
-  </saved-rooms>
+  <room-ids role="list">
+    <room-id-iter role="listitem">
+      Connected to room <room-id></room-id>
+    </room-id-iter>
+  </room-ids>
 </main>
 <main id="settings">
 </main>

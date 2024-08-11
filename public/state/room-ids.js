@@ -107,7 +107,7 @@ export function roomIdIterResult(context) {
  * @param {WeakKey} context */
 export async function* roomId(context) {
 	for await (const result of roomIdContext.subscribe(context)) {
-		if (result.done) break;
+		if (result.done) continue;
 		yield result.value;
 	}
 }

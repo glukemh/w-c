@@ -180,11 +180,20 @@ class State {
 	}
 
 	/**
+	 * @param {(current: T) => T} update
+	 */
+	update(update) {
+		if (this.#current instanceof ActiveState) {
+			this.#set(update(this.#current.value));
+		}
+	}
+
+	/**
 	 * Update state based on previous.
 	 * @param {T} initial initial value to use if state is not already set.
 	 * @param {Updater<T>} source yield functions to update state
 	 */
-	async update(source, initial) {
+	async updateFrom(source, initial) {
 		try {
 			for await (const f of source()) {
 				if (this.#current instanceof ActiveState) {
@@ -292,7 +301,7 @@ class Context {
 	 * @param {T} initial
 	 */
 	update(key, source, initial) {
-		this.#getOrResolveState(key).update(source, initial);
+		this.#getOrResolveState(key).updateFrom(source, initial);
 	}
 
 	/**

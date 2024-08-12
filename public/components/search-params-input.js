@@ -1,5 +1,5 @@
 import { queryParams } from "/state/query-params.js";
-import ConnectElement from "/assets/connect-element.js";
+import ConnectElement from "/mixins/connect-element.js";
 
 export default class SearchParamsInput extends ConnectElement {
 	static formAssociated = true;

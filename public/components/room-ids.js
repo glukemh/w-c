@@ -1,5 +1,5 @@
 import { provideRoomIds } from "/state/room-ids.js";
-import ConnectElement from "/assets/connect-element.js";
+import ConnectElement from "/mixins/connect-element.js";
 
 export default class RoomIds extends ConnectElement {
 	connectedCallback() {

@@ -1,5 +1,5 @@
 import { provideRoomId, roomIdIterResult } from "/state/room-ids.js";
-import ConnectElement from "/assets/connect-element.js";
+import ConnectElement from "/mixins/connect-element.js";
 import RoomIds from "/components/room-ids.js";
 
 export default class RoomIdIter extends ConnectElement {

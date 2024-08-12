@@ -1,5 +1,5 @@
 /**
- * @template {new (...args: any[]) => {}} T
+ * @template {CustomElementConstructor} T
  * @param {T} Base */
 export const connectElementMixin = (Base) => {
 	/**
@@ -30,6 +30,26 @@ export const connectElementMixin = (Base) => {
 				iter.return();
 			}
 			this.#iters = [];
+		}
+		/**
+		 * @template {CustomElementConstructor} T
+		 * @param {T} constructor
+		 * @returns {InstanceType<T>} context element */
+		context(constructor) {
+			const tag = customElements.getName(constructor);
+			if (!tag)
+				throw new Error(
+					`Expected ${constructor.name} to define a custom element`
+				);
+
+			const el = this.closest(tag);
+
+			if (!(el instanceof constructor)) {
+				throw new Error(
+					`Expected ${this.tagName} to be a descendant of ${tag}`
+				);
+			}
+			return /** @type {InstanceType<T>} */ (el);
 		}
 	}
 	return ConnectElement;

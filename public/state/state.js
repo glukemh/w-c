@@ -102,19 +102,11 @@ class State {
 
 	/**
 	 * Returns all subscriptions. If signal is provided, then return when signal is aborted.
-	 * @param {AbortSignal} [signal] */
-	return(signal) {
+	 */
+	return() {
 		if (this.#current.inert) return;
-		const handler = () => {
-			if (this.#current.inert) return;
-			this.#current = this.#current.makeInert();
-			this.#nextState.reject(this.#current);
-		};
-		if (!signal || signal.aborted) {
-			handler();
-		} else {
-			signal.addEventListener("abort", handler, { once: true });
-		}
+		this.#current = this.#current.makeInert();
+		this.#nextState.reject(this.#current);
 	}
 
 	/**
@@ -129,6 +121,11 @@ class State {
 		} catch (e) {
 			console.error(e);
 		}
+	}
+
+	/** @param {T} value */
+	set(value) {
+		this.#set(value);
 	}
 
 	/**

@@ -10,6 +10,7 @@
       "/assets/*": ["./assets/*"],
       "/components/*": ["./components/*"],
       "/state/*": ["./state/*"],
+      "/mixins/*": ["./mixins/*"],
     }
   }
 }

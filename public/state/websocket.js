@@ -1,5 +1,4 @@
 import { State } from "/state/state.js";
-import { roomIds } from "/state/room-ids.js";
 import { uid } from "/state/uid.js";
 
 /** @type {State<WebSocket | null>} */
@@ -22,35 +21,53 @@ export function websocket() {
 
 /** @type {State<WebSocket['readyState']>} */
 const websocketReadyState = new State((a, b) => a === b);
-websocketReadyState.from(async function* () {
+websocketReadyStateSetter();
+
+export function websocketConnectionState() {
+	return websocketReadyState.subscribe();
+}
+
+async function websocketReadyStateSetter() {
+	let controller = new AbortController();
 	for await (const ws of websocketState.subscribe()) {
 		if (ws === null) {
-			yield WebSocket.CONNECTING;
+			websocketReadyState.set(WebSocket.CONNECTING);
 			continue;
 		}
-		let p = Promise.withResolvers();
-		const callback = () => {
-			p.resolve(ws.readyState);
-			p = Promise.withResolvers();
-		};
-		ws.addEventListener("open", callback, { once: true });
-		ws.addEventListener("close", callback, { once: true });
+		controller.abort();
+		controller = new AbortController();
+		const callback = () => websocketReadyState.set(ws.readyState);
+		ws.addEventListener("open", callback, { signal: controller.signal });
+		ws.addEventListener("close", callback, { signal: controller.signal });
 		ws.addEventListener(
 			"error",
 			(e) => {
 				console.error(e);
 				callback();
 			},
-			{ once: true }
+			{ signal: controller.signal }
 		);
-		while (ws.readyState !== WebSocket.CLOSED) {
-			yield ws.readyState;
-			await p.promise;
-		}
-		yield ws.readyState;
+		callback();
 	}
-});
+}
 
-export function websocketConnectionState() {
-	return websocketReadyState.subscribe();
+/** @type {State<string>} */
+const websocketCloseReason = new State((a, b) => a === b);
+websocketCloseReasonSetter();
+
+export function websocketCloseReasonState() {
+	return websocketCloseReason.subscribe();
+}
+
+async function websocketCloseReasonSetter() {
+	let controller = new AbortController();
+	for await (const ws of websocketState.subscribe()) {
+		websocketCloseReason.set("");
+		if (ws === null) continue;
+		controller.abort();
+		controller = new AbortController();
+		ws.addEventListener("close", (e) => websocketCloseReason.set(e.reason), {
+			signal: controller.signal,
+		});
+	}
 }

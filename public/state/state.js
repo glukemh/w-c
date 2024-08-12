@@ -106,6 +106,7 @@ class State {
 	return() {
 		if (this.#current.inert) return;
 		this.#current = this.#current.makeInert();
+		this.#nextState.promise.catch(() => {}); // intentional promise rejection
 		this.#nextState.reject(this.#current);
 	}
 

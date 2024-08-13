@@ -3,8 +3,9 @@
  */
 
 /**
+ * Handler for connecting to a room. Upgrades the request to a WebSocket connection.
  * @param {Parameters<PagesFunction<Env, "roomName">>} args
- * @returns {Promise<Response>}
+ * @returns {Promise<Response>} response upgrades to WebSocket connection
  */
 export async function onRequestGet(...args) {
 	const [{ request, env, params }] = args;

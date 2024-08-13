@@ -1,8 +1,9 @@
 import { State } from "/state/state.js";
-import { websocket } from "/state/websocket.js";
+import { websocket } from "./room-connections.js";
 
-/** @type {State<unknown[]>} */
-const websocketMessageState = new State((a, b) => a === b);
+/** @type {State<Map<WebSocket, { message: unknown, timestamp: number}[]>>} */
+const websocketMessageState = new State();
+websocketMessageState.set(new Map());
 websocketMessageUpdater();
 
 export function websocketMessage() {
@@ -10,30 +11,37 @@ export function websocketMessage() {
 }
 
 async function websocketMessageUpdater() {
-	websocketMessageState.set([]);
-	let controller = new AbortController();
-	for await (const ws of websocket()) {
-		if (ws === null) continue;
-		controller.abort();
-		controller = new AbortController();
-		ws.addEventListener(
-			"message",
-			(e) => {
-				try {
-					if (typeof e.data !== "string")
-						throw new Error("Expected string data from websocket");
-					const data = JSON.parse(e.data);
-					websocketMessageState.update((a) => {
-						a.push(data);
-						return a;
-					});
-				} catch (e) {
-					console.error(e);
-				}
-			},
-			{
-				signal: controller.signal,
+	const controller = new AbortController();
+	for await (const webSockets of websocket()) {
+		const webSocketSet = new Set(Object.values(webSockets));
+		websocketMessageState.update((current) => {
+			const currentWebSockets = new Set(current.keys());
+			const newWebSockets = webSocketSet.difference(currentWebSockets);
+			const oldWebSockets = currentWebSockets.difference(webSocketSet);
+			for (const ws of oldWebSockets) {
+				current.delete(ws);
 			}
-		);
+			for (const ws of newWebSockets) {
+				current.set(ws, []);
+				ws.addEventListener(
+					"message",
+					(e) => {
+						if (typeof e.data !== "string") return;
+						try {
+							const message = JSON.parse(e.data);
+							websocketMessageState.update((current) => {
+								current.get(ws)?.unshift({ message, timestamp: Date.now() });
+								return current;
+							});
+						} catch (e) {
+							console.error(e);
+						}
+					},
+					{ signal: controller.signal }
+				);
+			}
+			return current;
+		});
 	}
+	controller.abort();
 }

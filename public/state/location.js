@@ -1,11 +1,16 @@
-/** @import { Setter, Updater } from "/state/state.js" */
-import { State } from "/state/state.js";
+/** @import { Setter, Updater, CallbackValues } from "/state/state.js" */
+import { callbackValues, take, State } from "/state/state.js";
 
 /** @type {State<URL>} */
 const locationState = new State((a, b) => a.href === b.href);
-locationState.set(new URL(window.location.href));
-window.addEventListener("popstate", () => {
-	locationState.set(new URL(window.location.href));
+locationState.from(async function* () {
+	/** @type {CallbackValues<PopStateEvent>} */
+	const { callback, values } = callbackValues();
+	window.addEventListener("popstate", callback);
+	yield new URL(window.location.href);
+	for await (const _ of values()) {
+		yield new URL(window.location.href);
+	}
 });
 
 export function location() {
@@ -27,22 +32,26 @@ export async function setLocation(source) {
 export async function updateLocation(updates) {
 	setLocation(async function* () {
 		for await (const update of updates()) {
-			yield update(await locationState.current);
+			for await (const current of take(location())) {
+				yield update(current);
+			}
 		}
 	});
 }
 
 /** @param {URL} url */
 async function handleSetLocation(url) {
-	const current = new URL(await locationState.current);
-	if (current.hash !== url.hash) {
-		// trigger hash change if hash is different
-		const nextHash = url.hash;
-		url.hash = current.hash;
-		window.history.pushState({}, "", url);
-		window.location.hash = nextHash;
-	} else {
-		window.history.pushState({}, "", url);
-		window.dispatchEvent(new PopStateEvent("popstate"));
+	for await (let current of take(location())) {
+		current = new URL(current);
+		if (current.hash !== url.hash) {
+			// trigger hash change if hash is different
+			const nextHash = url.hash;
+			url.hash = current.hash;
+			window.history.pushState({}, "", url);
+			window.location.hash = nextHash;
+		} else {
+			window.history.pushState({}, "", url);
+			window.dispatchEvent(new PopStateEvent("popstate"));
+		}
 	}
 }

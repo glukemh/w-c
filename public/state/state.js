@@ -306,12 +306,18 @@ class Context {
 
 	/**
 	 * @param {WeakKey} key
+	 * @param {(key: WeakKey) => ReturnType<Setter<T>>} [source] optionally derive source from key when first subscribed
 	 * @returns {ReturnType<State<T>['subscribe']>} */
-	async *subscribe(key) {
+	async *subscribe(key, source) {
 		try {
 			let state = this.#getStateOrInitial(key);
 			if (state instanceof InitialContext) {
-				state = await state.promise;
+				if (source) {
+					state = this.#getOrResolveState(key);
+					state.from(() => source(key));
+				} else {
+					state = await state.promise;
+				}
 			}
 			yield* state.subscribe();
 		} catch (e) {
@@ -411,5 +417,43 @@ export async function* race(...generators) {
 				unfinished.resolve
 			);
 		}
+	}
+}
+
+/**
+ * @template T
+ * @typedef {ReturnType<typeof callbackValues<T>>} CallbackValues */
+
+/** @template T */
+export function callbackValues() {
+	let p = Promise.withResolvers();
+	/** @type {T[]} */
+	let values = [];
+	return {
+		/** @returns {AsyncGenerator<T, void, void>} */
+		values: async function* () {
+			while (await p.promise) {
+				yield* values;
+			}
+		},
+		/** @param {T} x */
+		callback(x) {
+			values.push(x);
+			p.resolve(true);
+			p = Promise.withResolvers();
+		},
+	};
+}
+
+/**
+ * Iterate through the first n values
+ * @template T
+ * @param {AsyncIterable<T>} iter
+ * @param {number} [n]
+ */
+export async function* take(iter, n = 1) {
+	for await (const value of iter) {
+		if (n-- <= 0) break;
+		yield value;
 	}
 }

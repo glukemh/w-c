@@ -3,8 +3,8 @@ import { uid } from "/state/uid.js";
 import { roomIds } from "/state/room-ids.js";
 
 /** @type {State<Record<string, WebSocket>>} */
-const websocketState = new State();
-websocketState.updateFrom(async function* () {
+const webSocketState = new State();
+webSocketState.updateFrom(async function* () {
 	// Reconnect to all rooms when the user id changes
 	for await (const id of uid()) {
 		const { value: rooms, done } = await roomIds().next();
@@ -21,7 +21,7 @@ websocketState.updateFrom(async function* () {
 		};
 	}
 }, {});
-websocketState.updateFrom(async function* () {
+webSocketState.updateFrom(async function* () {
 	// Handle websocket connection when entering and leaving rooms
 	for await (const rooms of roomIds()) {
 		const { value: id, done } = await uid().next();
@@ -52,20 +52,20 @@ function newWebsocket(uid, room) {
 	return new WebSocket(url);
 }
 
-export function websocket() {
-	return websocketState.subscribe();
+export function webSockets() {
+	return webSocketState.subscribe();
 }
 
 /** @type {State<Map<WebSocket, WebSocket['readyState']>>} */
 const websocketReadyState = new State();
 websocketReadyState.set(new Map());
-websocketReadyStateUpdater();
+webSocketReadyStateUpdater();
 
-export function websocketConnectionState() {
+export function webSocketConnectionState() {
 	return websocketReadyState.subscribe();
 }
 
-async function websocketReadyStateUpdater() {
+async function webSocketReadyStateUpdater() {
 	const controller = new AbortController();
 	/** @param {WebSocket} ws */
 	const callback = (ws) => {
@@ -76,7 +76,7 @@ async function websocketReadyStateUpdater() {
 			return current;
 		});
 	};
-	for await (const webSockets of websocketState.subscribe()) {
+	for await (const webSockets of webSocketState.subscribe()) {
 		const webSocketSet = new Set(Object.values(webSockets));
 		websocketReadyState.update((current) => {
 			const currentWebSockets = new Set(current.keys());

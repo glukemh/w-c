@@ -1,20 +1,16 @@
-import { State } from "/state/state.js";
-import { websocket } from "./room-connections.js";
+/** @import { Updater, CallbackValues } from "/state/state.js" */
+import { State, callbackValues } from "/state/state.js";
+import { webSockets } from "/state/room-connections.js";
 
-/** @type {State<Map<WebSocket, { message: unknown, timestamp: number}[]>>} */
-const websocketMessageState = new State();
-websocketMessageState.set(new Map());
-websocketMessageUpdater();
+/** @typedef {Map<WebSocket, { message: unknown, timestamp: number}[]>} WebSocketMessageMap */
 
-export function websocketMessage() {
-	return websocketMessageState.subscribe();
-}
+/** @type {State<WebSocketMessageMap>} */
+const webSocketMessageState = new State();
+webSocketMessageState.updateFrom(async function* () {
+	for await (const webSocketRecord of webSockets()) {
+		const webSocketSet = new Set(Object.values(webSocketRecord));
 
-async function websocketMessageUpdater() {
-	const controller = new AbortController();
-	for await (const webSockets of websocket()) {
-		const webSocketSet = new Set(Object.values(webSockets));
-		websocketMessageState.update((current) => {
+		yield /** @param {WebSocketMessageMap} current */ (current) => {
 			const currentWebSockets = new Set(current.keys());
 			const newWebSockets = webSocketSet.difference(currentWebSockets);
 			const oldWebSockets = currentWebSockets.difference(webSocketSet);
@@ -23,25 +19,43 @@ async function websocketMessageUpdater() {
 			}
 			for (const ws of newWebSockets) {
 				current.set(ws, []);
-				ws.addEventListener(
-					"message",
-					(e) => {
-						if (typeof e.data !== "string") return;
-						try {
-							const message = JSON.parse(e.data);
-							websocketMessageState.update((current) => {
-								current.get(ws)?.unshift({ message, timestamp: Date.now() });
-								return current;
-							});
-						} catch (e) {
-							console.error(e);
-						}
-					},
-					{ signal: controller.signal }
+				webSocketMessageState.updateFrom(
+					() => updateNewWebSocketMessages(ws),
+					current
 				);
 			}
 			return current;
-		});
+		};
 	}
-	controller.abort();
+}, new Map());
+
+/**
+ * @param {WebSocket} ws
+ * @returns {ReturnType<Updater<WebSocketMessageMap>>}*/
+async function* updateNewWebSocketMessages(ws) {
+	/** @type {CallbackValues<MessageEvent<any>>} */
+	const { callback, values } = callbackValues();
+	const events = values();
+	ws.addEventListener("message", callback);
+	ws.addEventListener("close", () => events.return(), { once: true });
+	try {
+		for await (const event of events) {
+			if (typeof event.data !== "string") continue;
+			try {
+				const message = JSON.parse(event.data);
+				yield (current) => {
+					current.get(ws)?.unshift({ message, timestamp: Date.now() });
+					return current;
+				};
+			} catch (e) {
+				console.error(e);
+			}
+		}
+	} finally {
+		ws.removeEventListener("message", callback);
+	}
+}
+
+export function webSocketMessage() {
+	return webSocketMessageState.subscribe();
 }

@@ -1,8 +1,15 @@
-import { provideRoomId, roomIdIterResult } from "/state/room-ids.js";
+import {
+	provideRoomId,
+	roomIdIterResult,
+	roomIdContextTag,
+} from "/state/room-id.js";
 import ConnectElement from "/mixins/connect-element.js";
 import RoomIds from "/components/room-ids.js";
 
 export default class RoomIdIter extends ConnectElement {
+	get [roomIdContextTag]() {
+		return this;
+	}
 	/** @type {RoomIdIter | undefined} */
 	#nextSibling;
 	#internals = this.attachInternals();
@@ -34,11 +41,14 @@ export default class RoomIdIter extends ConnectElement {
 		const tag = customElements.getName(RoomIds);
 		if (!tag) throw new Error("Expected room-ids to define an element");
 		const context = this.closest(tag);
-		if (!context) return;
-		this.connectSignal.addEventListener("abort", provideRoomId(this, context), {
-			once: true,
-		});
-		this.connectNextSibling();
+		if (context instanceof RoomIds) {
+			this.connectSignal.addEventListener(
+				"abort",
+				provideRoomId(this, context),
+				{ once: true }
+			);
+			this.connectNextSibling();
+		}
 	}
 }
 

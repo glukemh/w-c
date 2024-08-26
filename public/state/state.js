@@ -1,459 +1,132 @@
-export { State, Context };
-
-const initial = Symbol("initial state value");
-
-class StartingState {
-	get inert() {
-		return /** @type {const} */ (false);
-	}
-	/**
-	 * @template T
-	 * @param {T} value
-	 * @returns {ActiveState<T>}
-	 */
-	set(value) {
-		return new ActiveState(value);
-	}
-	makeInert() {
-		return new InertState();
-	}
-}
-
-/** @template T */
-class ActiveState {
-	/** @param {T} value */
-	constructor(value) {
-		this.value = value;
-	}
-	get inert() {
-		return /** @type {const} */ (false);
-	}
-	makeInert() {
-		return new InertState();
-	}
-}
-
-class InertState {
-	get inert() {
-		return /** @type {const} */ (true);
-	}
-}
-
-/**
- * @template T
- * @typedef {() => AsyncGenerator<T>} Setter
- */
-
-/**
- * @template T
- * @typedef {() => AsyncGenerator<(current: T) => T>} Updater
- */
-
-/**
- * @template T
- * @typedef {StartingState | ActiveState<T> | InertState} CurrentState
- */
-
 /**
  * @template T
  * @typedef {(a: T, b: T) => boolean} Skip
  */
 
 /** @template T */
-class State {
-	/** @type {PromiseWithResolvers<T>} */
-	#nextState = Promise.withResolvers();
-	#currentPromise = this.#nextState.promise;
-	/** @type {CurrentState<T>} */
-	#current = new StartingState();
-
-	// #current = {
-	// 	value: /** @type {T | typeof initial} */ (initial),
-	// 	promise: this.#nextState.promise,
-	// };
-	/** @type {Skip<T> | undefined} */
+export class DerivedState {
+	/** @type {PromiseWithResolvers<boolean>} */
+	#p = Promise.withResolvers();
+	/** @type {T[]} */
+	#value = [];
+	/** @type {(current: T, next: T) => boolean} */
 	#skip;
-
-	get current() {
-		return this.#currentPromise;
-	}
-
-	/** @param {Skip<T>} [skip] optionally return whether values are equal to skip resolves */
+	/** @param {(current: T, next: T) => boolean} [skip] */
 	constructor(skip) {
-		this.#skip = skip;
+		this.#skip = skip ?? (() => false);
 	}
-
-	/** @param {T} value */
-	#set(value) {
-		early: if (!this.#current.inert) {
-			if (this.#current instanceof StartingState) {
-				this.#current = this.#current.set(value);
-			} else if (this.#skip?.(this.#current.value, value)) {
-				break early;
-			} else {
-				this.#current.value = value;
-			}
-			this.#currentPromise = this.#nextState.promise;
-			this.#nextState.resolve(value);
-			this.#nextState = Promise.withResolvers();
+	async *values() {
+		yield* this.#value;
+		while (await this.#p.promise) {
+			yield* this.#value;
 		}
-		return this.#current;
 	}
-
-	/**
-	 * Returns all subscriptions. If signal is provided, then return when signal is aborted.
-	 */
+	/** @protected */
 	return() {
-		if (this.#current.inert) return;
-		this.#current = this.#current.makeInert();
-		this.#nextState.promise.catch(() => {}); // intentional promise rejection
-		this.#nextState.reject(this.#current);
+		this.#value.splice(0);
+		this.#p.resolve(false);
+		this.#p = Promise.withResolvers();
 	}
-
 	/**
-	 * Set state from source values returning if state becomes inert.
-	 * @param {Setter<T>} source set from yielded values
-	 */
+	 * @protected
+	 * @param {T} value */
+	set(value) {
+		if (this.#value.length && this.#skip(this.#value[0], value)) return;
+		this.#value[0] = value;
+		this.#p.resolve(true);
+		this.#p = Promise.withResolvers();
+	}
+	/**
+	 * @protected
+	 * @param {() => AsyncGenerator<T>} source */
 	async from(source) {
-		try {
-			for await (const value of source()) {
-				if (this.#set(value).inert) break;
-			}
-		} catch (e) {
-			console.error(e);
+		for await (const value of source()) {
+			this.set(value);
 		}
 	}
 
+	/**
+	 * @template U
+	 * @param {() => AsyncGenerator<U, void, void>} source */
+	race(source) {
+		const values = /** @type {[T, U]} */ (new Array(2));
+		const iters = /** @type {const} */ ([this.values(), source()]);
+		/** @type {State<[T, U]>} */
+		const state = new State();
+		state.from(() => setter(0));
+		state.from(() => setter(1));
+
+		return state.values();
+
+		/** @param {0 | 1} i */
+		async function* setter(i) {
+			for await (const value of iters[i]) {
+				values[i] = /** @type {any} */ (value);
+				if (Object.keys(values).length === values.length) {
+					state.set(values);
+				}
+			}
+			iters[(i + 1) % 2].return();
+			state.return();
+		}
+	}
+}
+
+/**
+ * @template T
+ * @extends DerivedState<T> */
+export class State extends DerivedState {
 	/** @param {T} value */
 	set(value) {
-		this.#set(value);
+		super.set(value);
 	}
-
-	/**
-	 * @template {EventTarget} ET
-	 * @template {`on${string}` & keyof ET} K
-	 * @template {K extends `on${infer Type}` ? Type : never} Type
-	 * @template {K extends `on${Type}` ? (Exclude<ET[K], null> extends (ev: infer E) => any ? E : never) : never} E
-	 * @overload
-	 * @param {ET} target
-	 * @param {Type} type
-	 * @param {(getEvent: () => Promise<E>) => AsyncGenerator<T>} source
-	 * @param {AddEventListenerOptions} [options]
-	 */
-	/**
-	 * @overload
-	 * @param {EventTarget} target
-	 * @param {string} type
-	 * @param {(getEvent: () => Promise<Event>) => AsyncGenerator<T>} source
-	 * @param {AddEventListenerOptions} [options]
-	 */
-	/**
-	 * @param {EventTarget} target
-	 * @param {string} type
-	 * @param {(getEvent: () => Promise<Event>) => AsyncGenerator<T>} source
-	 * @param {AddEventListenerOptions} [options]
-	 */
-	async fromEvent(target, type, source, options) {
-		const controller = new AbortController();
-		try {
-			let p = Promise.withResolvers();
-			let event;
-			target.addEventListener(
-				type,
-				(e) => {
-					p.resolve((event = e));
-					p = Promise.withResolvers();
-				},
-				{
-					signal: controller.signal,
-					...options,
-				}
-			);
-			for await (const value of source(() => p.promise.then(() => event))) {
-				if (this.#set(value).inert) break;
-			}
-		} catch (e) {
-			console.error(e);
-		} finally {
-			controller.abort();
-		}
+	/** @param {() => AsyncGenerator<T>} source */
+	from(source) {
+		return super.from(source);
 	}
-
-	/**
-	 * @param {(current: T) => T} update
-	 */
-	update(update) {
-		if (this.#current instanceof ActiveState) {
-			this.#set(update(this.#current.value));
-		}
-	}
-
-	/**
-	 * Update state based on previous.
-	 * @param {T} initial initial value to use if state is not already set.
-	 * @param {Updater<T>} source yield functions to update state
-	 */
-	async updateFrom(source, initial) {
-		try {
-			for await (const f of source()) {
-				if (this.#current instanceof ActiveState) {
-					initial = this.#current.value;
-				} else if (this.#current instanceof InertState) {
-					break;
-				}
-				this.#set(f(initial));
-			}
-		} catch (e) {
-			console.error(e);
-		}
-	}
-
-	async *subscribe() {
-		try {
-			await this.#currentPromise;
-			while (this.#current instanceof ActiveState) {
-				yield this.#current.value;
-				await this.#nextState.promise;
-			}
-		} catch (e) {
-			if (!(e instanceof InertState)) throw e;
-		}
+	return() {
+		super.return();
 	}
 }
 
-/** @template T */
-class InitialContext {
-	/** @type {PromiseWithResolvers<State<T>>} */
-	#promise = Promise.withResolvers();
-	get promise() {
-		return this.#promise.promise;
-	}
-	/** @param {State<T>} value */
-	resolve(value) {
-		this.#promise.resolve(value);
-		return value;
-	}
-	/** @param {unknown} reason */
-	reject(reason) {
-		this.#promise.reject(reason);
-	}
-}
-
-/** @template T */
-class Context {
-	static rootKey = Symbol("root context key");
-
-	/** @type {WeakMap<WeakKey, InitialContext<T> | State<T>>} */
+/**
+ * @template {WeakKey} K
+ * @template {State<unknown>} S */
+export class Context {
+	/** @type {WeakMap<K, S>} */
 	#states = new WeakMap();
+	#newState;
 
-	/** @param {WeakKey} key */
-	#getStateOrInitial(key) {
-		let p = this.#states.get(key);
-		if (!p) {
-			p = new InitialContext();
-			this.#states.set(key, p);
-		}
-		return p;
+	/** @param {() => S} newState */
+	constructor(newState) {
+		this.#newState = newState;
 	}
 
-	/** @param {WeakKey} key */
-	#getOrResolveState(key) {
-		let state = this.#getStateOrInitial(key);
-		if (state instanceof InitialContext) {
-			const newState = new State(this.#skip);
-			state.resolve(newState);
-			state = newState;
+	/**
+	 * @protected
+	 * @param {K} key */
+	state(key) {
+		let state = this.#states.get(key);
+		if (!state) {
+			state = this.#newState();
+			this.#states.set(key, state);
 		}
-		this.#states.set(key, state);
 		return state;
 	}
 
-	/** @type {Skip<T> | undefined} */
-	#skip;
-
-	/** @param {Skip<T>} [skip] */
-	constructor(skip) {
-		this.#skip = skip;
-	}
-
-	/** @param {WeakKey} key */
-	remove(key) {
-		const state = this.#states.get(key);
-		if (state instanceof State) {
-			state.return();
-		} else if (state instanceof InitialContext) {
-			state.reject(state);
-		}
-		this.#states.delete(key);
-	}
-
 	/**
-	 * @param {WeakKey} key
-	 * @param {Setter<T>} source
-	 */
-	from(key, source) {
-		this.#getOrResolveState(key).from(source);
+	 * @protected
+	 * @param {K} key
+	 * @returns {() => void} - returns from state associated with provided key */
+	returnState(key) {
+		const state = this.state(key);
+		return () => state.return();
 	}
 
-	/**
-	 * @param {WeakKey} key
-	 * @param {Updater<T>} source
-	 * @param {T} initial
-	 */
-	update(key, source, initial) {
-		this.#getOrResolveState(key).updateFrom(source, initial);
-	}
-
-	/**
-	 * @param {WeakKey} key
-	 * @param {(key: WeakKey) => ReturnType<Setter<T>>} [source] optionally derive source from key when first subscribed
-	 * @returns {ReturnType<State<T>['subscribe']>} */
-	async *subscribe(key, source) {
-		try {
-			let state = this.#getStateOrInitial(key);
-			if (state instanceof InitialContext) {
-				if (source) {
-					state = this.#getOrResolveState(key);
-					state.from(() => source(key));
-				} else {
-					state = await state.promise;
-				}
-			}
-			yield* state.subscribe();
-		} catch (e) {
-			if (!(e instanceof InitialContext)) throw e;
-		}
-	}
-}
-
-/**
- * @template T
- * @param {AsyncGenerator<T>} iter
- * @param {(state: T) => void | boolean} callback
- */
-export async function forAwait(iter, callback) {
-	for await (const value of iter) {
-		if (callback(value)) break;
-	}
-}
-
-/**
- * @template T
- * @template S
- * @param {AsyncIterable<S>} source any async iterable
- * @param {(sourceState: S) => T} computed compute the next state from source state
- * @param {(prev: T, next: T) => boolean} [compare] skip current iteration if true
- * @returns {() => AsyncGenerator<T, void, any>}
- */
-export function derive(source, computed, compare) {
-	return async function* derived() {
-		/** @type {typeof initial | T} */
-		let current = initial;
-		for await (const val of source) {
-			const next = computed(val);
-			if (current === initial || !compare?.(current, next)) {
-				yield (current = next);
-			}
-		}
-	};
-}
-
-/**
- * Yields a tuple of values from async generators every time one of them yields. Returns immediately once any generator is done.
- * Values may be skipped in favor of the most recent if a generator yields multiple times before this generator yields.
- * @template {[...AsyncGenerator<any, void, void>[]]} T
- * @param {T} generators */
-export async function* race(...generators) {
-	/**
-	 * @template S
-	 * @typedef {S extends AsyncGenerator<infer U> ? U : never} GeneratorYields
-	 */
-	/**
-	 * @template {[...any[]]} Tuple
-	 * @typedef { {[Index in keyof Tuple]: GeneratorYields<Tuple[Index]>; } & {length: Tuple['length']}} ValuesTuple
-	 */
-
-	const allUnfinished = generators.map(() => Promise.withResolvers());
-	const values = /** @type {ValuesTuple<T>} */ (new Array(generators.length));
-	const tuplesIter = tuples();
-	generators.forEach(iterate);
-	try {
-		yield* tuplesIter;
-	} catch (e) {
-		console.error(e);
-	} finally {
-		generators.map((iter) => iter.return());
-	}
-
-	/**
-	 * @param {AsyncGenerator} iter
-	 * @param {number} i */
-	async function iterate(iter, i) {
-		try {
-			for await (const value of iter) {
-				values[i] = value;
-				allUnfinished[i].resolve(true);
-				allUnfinished[i] = Promise.withResolvers();
-			}
-		} catch (e) {
-			console.error(e);
-		}
-		allUnfinished[i].resolve(false);
-	}
-
-	async function* tuples() {
-		let unfinished = Promise.withResolvers();
-		Promise.all(allUnfinished.map((p) => p.promise)).then((arr) => {
-			unfinished.resolve(arr.every((x) => x));
-		});
-		allUnfinished.forEach(async (p) => {
-			if (await p.promise) return;
-			unfinished.resolve(false);
-		});
-		while (await unfinished.promise) {
-			yield values;
-			unfinished = Promise.withResolvers();
-			Promise.race(allUnfinished.map((p) => p.promise)).then(
-				unfinished.resolve
-			);
-		}
-	}
-}
-
-/**
- * @template T
- * @typedef {ReturnType<typeof callbackValues<T>>} CallbackValues */
-
-/** @template T */
-export function callbackValues() {
-	let p = Promise.withResolvers();
-	/** @type {T[]} */
-	let values = [];
-	return {
-		/** @returns {AsyncGenerator<T, void, void>} */
-		values: async function* () {
-			while (await p.promise) {
-				yield* values;
-			}
-		},
-		/** @param {T} x */
-		callback(x) {
-			values.push(x);
-			p.resolve(true);
-			p = Promise.withResolvers();
-		},
-	};
-}
-
-/**
- * Iterate through the first n values
- * @template T
- * @param {AsyncIterable<T>} iter
- * @param {number} [n]
- */
-export async function* take(iter, n = 1) {
-	for await (const value of iter) {
-		if (n-- <= 0) break;
-		yield value;
+	/** @param {K} key */
+	values(key) {
+		return /** @type {S extends State<infer U> ? AsyncGenerator<U, void, unknown> : never} */ (
+			this.state(key).values()
+		);
 	}
 }

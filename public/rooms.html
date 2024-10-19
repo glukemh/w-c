@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rooms</title>
+<link rel="icon" href="assets/icon-n.svg">
+<link rel="manifest" href="manifest.json">
+<script src="assets/app.js" type="module"></script>
+<script src="components/form-params.js" type="module"></script>
+<script src="components/room-ids.js" type="module"></script>
+<script src="components/room-id-iter.js" type="module"></script>
+<script src="components/room-id.js" type="module"></script>
+<script src="components/room-id-input.js" type="module"></script>
+<script src="components/message-room.js" type="module"></script>
+<script src="components/room-messages.js" type="module"></script>
+<script src="components/room-message-iter.js" type="module"></script>
+<script src="components/room-message.js" type="module"></script>
+<style>
+  @import url(assets/global.css) layer(base);
+  @import url(assets/element-resets.css) layer(base);
+  @import url(assets/gutter.css) layer(layout);
+  @import url(assets/header-nav.css) layer(component);
+  @layer base, layout, component;
+
+  main {
+    container-type: inline-size;
+    margin: 0 calc(var(--body-gutter) * -1);
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    min-width: 0;
+
+    &::before,
+    &::after {
+      content: '';
+      flex: 0 0 50%;
+    }
+
+    >* {
+      flex: 0 0 auto;
+      width: max-content;
+    }
+  }
+
+  room-ids {
+    box-sizing: border-box;
+    display: grid;
+    padding: 16px;
+    grid-auto-flow: column;
+    grid-auto-columns: min(100ch, 90cqi);
+    gap: min(3cqi, 16px);
+    height: 100%;
+  }
+
+  h2 {
+    text-align: center;
+  }
+
+  room-id-iter {
+    scroll-snap-align: center;
+    border: 1px solid var(--color-button-border);
+    border-radius: 10px;
+
+    &:state(empty) {
+      display: none;
+    }
+  }
+</style>
+
+<body class="gutter">
+  <header class="header-nav">
+    <nav>
+      <ul>
+        <li><a href="/">Join Room</a>
+        <li><a>Rooms</a>
+        <li><a href="/settings">Settings</a>
+      </ul>
+    </nav>
+  </header>
+  <main id="rooms">
+    <room-ids role="list">
+      <room-id-iter role="listitem">
+        <h2><room-id></room-id></h2>
+        <form>
+          <form-params query-params="delete"></form-params>
+          <room-id-input name="room-id"></room-id-input>
+          <button type="submit">Leave</button>
+        </form>
+        <room-messages>
+          <room-message-iter>
+            <room-message></room-message>
+          </room-message-iter>
+        </room-messages>
+        <form method="post">
+          <message-room></message-room>
+          <input type="text" placeholder="Message" required>
+          <button type="submit">Send</button>
+        </form>
+      </room-id-iter>
+    </room-ids>
+  </main>
+</body>

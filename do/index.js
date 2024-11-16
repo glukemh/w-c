@@ -32,9 +32,7 @@ export class Room {
 			return new Response("Expected uid", { status: 400 });
 		}
 		let [client, server] = Object.values(new WebSocketPair());
-		/**
-		 * @type {string[]}
-		 */
+		/** @type {string[]} */
 		const users = [];
 		for (const ws of this.state.getWebSockets()) {
 			if (ws.readyState !== WebSocket.READY_STATE_OPEN) continue;

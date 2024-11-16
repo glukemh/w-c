@@ -1,17 +1,20 @@
-/// <reference lib="webworker" />
+const ctx = castToServiceWorker(self);
+ctx.importScripts("/service-worker-lib/room-websocket.js");
 
+console.log("new service worker");
 const cacheName = "v1";
 const staticResources = ["/", "/assets/app.js", "/assets/icon-n.svg"];
 
-self.addEventListener("install", (/** @type {ExtendableEvent} */ event) => {
+ctx.addEventListener("install", (event) => {
 	event.waitUntil(cacheUrls());
 });
 
-self.addEventListener("fetch", (/** @type {FetchEvent} */ event) => {
+ctx.addEventListener("fetch", (event) => {
+	if (handleWebSocketFetch(event)) return;
 	event.respondWith(cacheElseFetch(event.request));
 });
 
-self.addEventListener("activate", (/** @type {ExtendableEvent} */ event) => {
+ctx.addEventListener("activate", (event) => {
 	event.waitUntil(deleteOldCaches());
 });
 
@@ -42,4 +45,9 @@ async function deleteOldCaches() {
 			.filter((name) => name !== cacheName)
 			.map((name) => caches.delete(name))
 	);
+}
+
+/** @param {globalThis} obj */
+function castToServiceWorker(obj) {
+	return /** @type {ServiceWorkerGlobalScope} */ (/** @type {unknown} */ (obj));
 }

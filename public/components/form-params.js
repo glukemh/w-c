@@ -1,4 +1,4 @@
-import { setLocation } from "/state/location.js";
+import location from "/state/location.js";
 import FormAssociated from "/mixins/form-associated.js";
 
 export default class FormParams extends FormAssociated {
@@ -12,7 +12,6 @@ export default class FormParams extends FormAssociated {
 	onSubmit(e, form) {
 		e.preventDefault();
 		const formData = new FormData(form);
-		console.debug("FormParams.onSubmit", formData);
 		const url = new URL(form.action);
 		switch (this.getAttribute("query-params")) {
 			case "delete":
@@ -31,8 +30,7 @@ export default class FormParams extends FormAssociated {
 					}
 				}
 		}
-		console.debug("FormParams.onSubmit", url);
-		setLocation(url);
+		location.set(url);
 	}
 }
 

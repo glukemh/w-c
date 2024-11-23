@@ -4,8 +4,7 @@
 export const connectElementMixin = (Base) => {
 	/**
 	 * @class
-	 * @extends {Base}
-	 */
+	 * @extends Base */
 	class ConnectElement extends Base {
 		/** @type {(Generator<any, void, void> | AsyncGenerator<any, void, void>)[]} */
 		#iters = [];

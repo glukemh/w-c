@@ -9,7 +9,6 @@ class RoomIdIter extends Context {
 	constructor() {
 		super(() => /** @type {State<Set<string>>} */ (new State()));
 	}
-
 	/** @param {RoomIdIterContext} key */
 	provide(key) {
 		this.state(key).from(stateSource);
@@ -21,6 +20,7 @@ export default new RoomIdIter();
 
 async function* stateSource() {
 	for await (const ids of roomIds.values()) {
+		console.debug("~~~ room-id-iter: source", ids);
 		yield new Set(ids);
 	}
 }

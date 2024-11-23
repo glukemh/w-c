@@ -5,13 +5,12 @@ import location from "/state/location.js";
 class QueryParams extends DerivedState {
 	constructor() {
 		super((a, b) => a.toString() === b.toString());
-		this.from(async function* () {
+		super.from(async function* () {
 			for await (const loc of location.values()) {
 				yield loc.searchParams;
 			}
 		});
 	}
-
 	/** @param {URLSearchParams} params */
 	async set(params) {
 		for await (const loc of location.values()) {
@@ -23,8 +22,10 @@ class QueryParams extends DerivedState {
 	}
 
 	/** @param {() => AsyncGenerator<URLSearchParams>} source */
-	from(source) {
-		return super.from(source);
+	async from(source) {
+		for await (const params of source()) {
+			this.set(params);
+		}
 	}
 }
 

@@ -1,4 +1,4 @@
-import { provideRoomIds, roomIdIterContextTag } from "/state/room-id.js";
+import roomIdIter, { roomIdIterContextTag } from "/state/room-id-iter.js";
 import ConnectElement from "/mixins/connect-element.js";
 
 export default class RoomIds extends ConnectElement {
@@ -6,7 +6,7 @@ export default class RoomIds extends ConnectElement {
 		return this;
 	}
 	connectedCallback() {
-		this.connectSignal.addEventListener("abort", provideRoomIds(this), {
+		this.connectSignal.addEventListener("abort", roomIdIter.provide(this), {
 			once: true,
 		});
 	}

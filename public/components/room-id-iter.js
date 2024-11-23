@@ -1,42 +1,29 @@
-import {
-	provideRoomId,
-	roomIdIterResult,
-	roomIdContextTag,
-} from "/state/room-id.js";
+/** @import { RoomIdIterContext } from "/state/room-id-iter.js" */
+import roomId, { roomIdContextTag } from "/state/room-id.js";
+import roomIdIter from "/state/room-id-iter.js";
 import ConnectElement from "/mixins/connect-element.js";
+import { linkListMixin } from "/mixins/link-list.js";
 import RoomIds from "/components/room-ids.js";
 
-export default class RoomIdIter extends ConnectElement {
+export default class RoomIdIter extends linkListMixin(ConnectElement) {
 	get [roomIdContextTag]() {
 		return this;
 	}
-	/** @type {RoomIdIter | undefined} */
-	#nextSibling;
 	#internals = this.attachInternals();
-	root = true;
-	async connectNextSibling() {
-		for await (const result of this.whileConnected(roomIdIterResult(this))) {
-			if (result.done) {
-				this.#internals.states.add("empty");
-				if (this.root) {
-					// keep root connected to listen to room id changes
-					continue;
-				} else {
-					this.remove();
-					break;
-				}
-			} else {
-				this.#internals.states.delete("empty");
-			}
-			if (!this.#nextSibling) {
-				this.#nextSibling = /** @type {RoomIdIter} */ (this.cloneNode(true));
-				this.#nextSibling.root = false;
-			}
-			if (!this.#nextSibling.isConnected) {
-				this.after(this.#nextSibling);
-			}
+	/**
+	 * Add empty state
+	 * @protected
+	 * @param {RoomIdIterContext} context */
+	async handleEmpty(context) {
+		for await (const _ of this.whileConnected(roomIdIter.values(context))) {
+			this.#internals.states.delete("empty");
+			console.debug("~~~ room-id-iter: before");
+			await this.connectSibling(this.whileConnected(roomId.values(this)));
+			console.debug("~~~ room-id-iter: after");
+			this.#internals.states.add("empty");
 		}
 	}
+
 	connectedCallback() {
 		const tag = customElements.getName(RoomIds);
 		if (!tag) throw new Error("Expected room-ids to define an element");
@@ -44,10 +31,12 @@ export default class RoomIdIter extends ConnectElement {
 		if (context instanceof RoomIds) {
 			this.connectSignal.addEventListener(
 				"abort",
-				provideRoomId(this, context),
+				roomId.provide(this, context),
 				{ once: true }
 			);
-			this.connectNextSibling();
+			const iter = this.root ? roomIdIter.values(context) : roomId.values(this);
+			this.connectSibling(this.whileConnected(iter));
+			this.handleEmpty(context);
 		}
 	}
 }

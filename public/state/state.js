@@ -27,10 +27,8 @@ export class DerivedState {
 		this.#p.resolve(false);
 		this.#p = Promise.withResolvers();
 	}
-	/**
-	 * @protected
-	 * @param {T} value */
-	set(value) {
+	/** @param {T} value */
+	#set(value) {
 		if (this.#value.length && this.#skip(this.#value[0], value)) return;
 		this.#value[0] = value;
 		this.#p.resolve(true);
@@ -38,10 +36,16 @@ export class DerivedState {
 	}
 	/**
 	 * @protected
+	 * @param {T} value */
+	set(value) {
+		this.#set(value);
+	}
+	/**
+	 * @protected
 	 * @param {() => AsyncGenerator<T>} source */
 	async from(source) {
 		for await (const value of source()) {
-			this.set(value);
+			this.#set(value);
 		}
 	}
 

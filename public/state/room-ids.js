@@ -5,7 +5,7 @@ import queryParams from "/state/query-params.js";
 class RoomIds extends DerivedState {
 	constructor() {
 		super((a, b) => a.isSubsetOf(b) && b.isSubsetOf(a));
-		this.from(async function* () {
+		super.from(async function* () {
 			for await (const s of queryParams.values()) {
 				yield new Set(s.getAll("room-id"));
 			}
@@ -26,8 +26,10 @@ class RoomIds extends DerivedState {
 	}
 
 	/** @param {() => AsyncGenerator<Set<string>>} source */
-	from(source) {
-		return super.from(source);
+	async from(source) {
+		for await (const roomIds of source()) {
+			this.set(roomIds);
+		}
 	}
 }
 

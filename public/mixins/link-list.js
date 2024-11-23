@@ -4,7 +4,7 @@
 export const linkListMixin = (Base) => {
 	/**
 	 * @class
-	 * @extends {Base} */
+	 * @extends Base */
 	class LinkList extends Base {
 		/** @type {LinkList | null} */
 		#nextSibling = null;

@@ -4,8 +4,7 @@
 export const formAssociatedMixin = (Base) => {
 	/**
 	 * @class
-	 * @extends {Base}
-	 */
+	 * @extends Base */
 	class FormAssociated extends Base {
 		static formAssociated = true;
 		internals = this.attachInternals();

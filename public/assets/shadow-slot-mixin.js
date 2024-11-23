@@ -1,10 +1,10 @@
 /**
- * @param {new() => HTMLElement} Base
- */
+ * @template {CustomElementConstructor} T
+ * @param {T} Base */
 export const shadowSlotMixin = (Base) => {
 	/**
-	 * @extends {Base}
-	 */
+	 * @class
+	 * @extends Base */
 	class ShadowSlotMixin extends Base {
 		/**
 		 * @template {keyof HTMLElementTagNameMap} T

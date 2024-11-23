@@ -9,23 +9,30 @@ export const formAssociatedMixin = (Base) => {
 	class FormAssociated extends Base {
 		static formAssociated = true;
 		internals = this.attachInternals();
+
+		/** @param {Event} e */
+		handleEvent(e) {
+			if (e instanceof SubmitEvent) {
+				this.onSubmit(e);
+			} else if (e instanceof FormDataEvent) {
+				this.onFormData(e);
+			}
+		}
+
 		/** @param {SubmitEvent} e */
-		#onSubmitCallback = (e) => {
-			const { form } = this.internals;
-			if (!form) return;
-			this.onSubmit(e, form);
-		};
-		/**
-		 * @param {SubmitEvent} e
-		 * @param {HTMLFormElement} form */
-		onSubmit(e, form) {}
+		onSubmit(e) {}
+		/** @param {FormDataEvent} e */
+		onFormData(e) {}
+
 		/** @param {HTMLFormElement} form */
 		formAssociatedCallback(form) {
 			super["formAssociatedCallback"]?.(form);
 			if (this.internals.form) {
-				form.addEventListener("submit", this.#onSubmitCallback);
+				form.addEventListener("submit", this);
+				form.addEventListener("formdata", this);
 			} else {
-				form.removeEventListener("submit", this.#onSubmitCallback);
+				form.removeEventListener("submit", this);
+				form.removeEventListener("formdata", this);
 			}
 		}
 	}

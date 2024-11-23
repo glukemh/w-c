@@ -6,176 +6,71 @@
 <link rel="manifest" href="manifest.json">
 <script src="assets/app.js" type="module"></script>
 <script src="components/form-params.js" type="module"></script>
-<script src="components/room-ids.js" type="module"></script>
-<script src="components/room-id-iter.js" type="module"></script>
-<script src="components/room-id.js" type="module"></script>
-<script src="components/room-id-input.js" type="module"></script>
-<script src="components/message-room.js" type="module"></script>
-<script src="components/room-messages.js" type="module"></script>
-<script src="components/room-message-iter.js" type="module"></script>
-<script src="components/room-message.js" type="module"></script>
+<script src="components/on-index.js" type="module"></script>
 <style>
   @import url(assets/global.css) layer(base);
-  @import url(assets/list.css) layer(base);
-  @import url(assets/anchor.css) layer(base);
-  @import url(assets/input.css) layer(base);
-  @import url(assets/button.css) layer(base);
+  @import url(assets/element-resets.css) layer(base);
+  @import url(assets/gutter.css) layer(layout);
+  @import url(assets/header-nav.css) layer(component);
+  @layer base, layout, component;
 
-  @scope (body) to (main > *) {
-    & {
-      --body-gutter: 16px;
-      display: grid;
-      grid-template-columns: var(--body-gutter) minmax(0, 1fr) var(--body-gutter);
-      grid-template-rows: min-content;
+  main {
+    text-align: center;
+  }
 
-      >* {
-        grid-column: 2;
-      }
+  @media not (scripting: enabled) {
+    noscript~* {
+      display: none;
+    }
+  }
 
-      > :not(:target, header) {
-        display: none;
-      }
+  on-index.show:not(:state(index)) {
+    display: none;
+  }
 
-      &:not(:has(> :target)) #join-room {
-        display: block;
-      }
+  on-index.hide:state(index) {
+    display: none;
 
-      &:not(:has(> :target)) [href="#join-room"],
-      &:has(#join-room:target) [href="#join-room"],
-      &:has(#rooms:target) [href="#rooms"],
-      &:has(#settings:target) [href="#settings"] {
-        text-decoration-color: currentColor;
-        font-weight: bold;
-      }
+  }
+
+  .not-found {
+    height: 100dvh;
+    align-content: center;
+
+    h1 {
+      margin-block-start: 0;
     }
   }
 </style>
-<header>
-  <style>
-    @scope {
-      nav {
-        text-align: center;
-        display: flex;
-        overflow-x: auto;
-        scroll-snap-type: x proximity;
-        scrollbar-width: thin;
-        scrollbar-gutter: stable both-edges;
-        justify-content: center;
-      }
 
-      ul {
-        display: grid;
-        grid-auto-flow: column;
-        grid-auto-columns: max-content;
-        gap: 1em;
-        max-width: 100%;
-        padding-block: 0.5em;
-        text-align: center;
-
-        >* {
-          scroll-snap-align: center;
-        }
-      }
-
-      @media (hover: none) {
-        ul {
-          scrollbar-width: none;
-        }
-      }
-    }
-  </style>
-  <nav>
-    <ul>
-      <li><a href="#join-room">Join Room</a>
-      <li><a href="#rooms">Rooms</a>
-      <li><a href="#settings">Settings</a>
-    </ul>
-  </nav>
-</header>
-<main id="join-room">
-  <style>
-    @scope {
-      :scope {
-        text-align: center;
-      }
-    }
-  </style>
-  <h1>Room Number</h1>
-  <form action="#rooms" method="get">
-    <form-params></form-params>
-    <input type="text" name="room-id" placeholder="Enter a room" required>
-    <button type="submit">Join</button>
-  </form>
-</main>
-<main id="rooms">
-  <style>
-    @scope {
-      :scope {
-        container-type: inline-size;
-        margin: 0 calc(var(--body-gutter) * -1);
-        display: flex;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        min-width: 0;
-
-        &::before,
-        &::after {
-          content: '';
-          flex: 0 0 50%;
-        }
-
-        >* {
-          flex: 0 0 auto;
-          width: max-content;
-        }
-      }
-
-      room-ids {
-        box-sizing: border-box;
-        display: grid;
-        padding: 16px;
-        grid-auto-flow: column;
-        grid-auto-columns: min(100ch, 90cqi);
-        gap: min(3cqi, 16px);
-        height: 100%;
-      }
-
-      h2 {
-        text-align: center;
-      }
-
-      room-id-iter {
-        scroll-snap-align: center;
-        border: 1px solid var(--color-button-border);
-        border-radius: 10px;
-
-        &:state(empty) {
-          display: none;
-        }
-      }
-
-    }
-  </style>
-  <room-ids role="list">
-    <room-id-iter role="listitem">
-      <h2><room-id></room-id></h2>
-      <form>
-        <form-params query-params="delete"></form-params>
-        <room-id-input name="room-id"></room-id-input>
-        <button type="submit">Leave</button>
+<body class="gutter">
+  <noscript>
+    This application requires JavaScript to be enabled.
+  </noscript>
+  <header class="header-nav">
+    <nav>
+      <ul>
+        <li>
+          <on-index class="show"><a>Join Room</a></on-index>
+          <on-index class="hide"><a href="index">Join Room</a></on-index>
+        <li><a href="rooms">Rooms</a>
+        <li><a href="settings">Settings</a>
+      </ul>
+    </nav>
+  </header>
+  <on-index class="show">
+    <main>
+      <h1>Room Number</h1>
+      <form action="rooms" method="get">
+        <form-params></form-params>
+        <input type="text" name="room-id" placeholder="Enter a room" required>
+        <button type="submit">Join</button>
       </form>
-      <room-messages>
-        <room-message-iter>
-          <room-message></room-message>
-        </room-message-iter>
-      </room-messages>
-      <form method="post">
-        <message-room></message-room>
-        <input type="text" placeholder="Message" required>
-        <button type="submit">Send</button>
-      </form>
-    </room-id-iter>
-  </room-ids>
-</main>
-<main id="settings">
-</main>
+    </main>
+  </on-index>
+  <on-index class="hide">
+    <main class="not-found">
+      <h1>Page Not Found</h1>
+    </main>
+  </on-index>
+</body>

@@ -1,4 +1,3 @@
-import location from "/state/location.js";
 import FormAssociated from "/mixins/form-associated.js";
 
 export default class FormParams extends FormAssociated {
@@ -6,13 +5,11 @@ export default class FormParams extends FormAssociated {
 		return ["query-params"];
 	}
 
-	/**
-	 * @param {SubmitEvent} e
-	 * @param {HTMLFormElement} form */
-	onSubmit(e, form) {
-		e.preventDefault();
-		const formData = new FormData(form);
-		const url = new URL(form.action);
+	/** @param {FormDataEvent} e */
+	onFormData(e) {
+		const { formData, target } = e;
+		if (!(target instanceof HTMLFormElement)) return;
+		const url = new URL(target.action);
 		switch (this.getAttribute("query-params")) {
 			case "delete":
 				for (const [key, value] of formData) {
@@ -30,7 +27,6 @@ export default class FormParams extends FormAssociated {
 					}
 				}
 		}
-		location.set(url);
 	}
 }
 

@@ -1,0 +1,10 @@
+.gutter {
+	--_gutter: 16px;
+	display: grid;
+	grid-template-columns: var(--_gutter) minmax(0, 1fr) var(--_gutter);
+	grid-template-rows: min-content;
+
+	> * {
+		grid-column: 2;
+	}
+}

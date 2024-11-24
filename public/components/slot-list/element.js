@@ -21,3 +21,5 @@ export default class SlotList extends HTMLElement {
 		this.#newSlot();
 	}
 }
+
+customElements.define("slot-list", SlotList);

@@ -1,0 +1,5 @@
+{
+  "javascript.preferences.importModuleSpecifierEnding": "js",
+  "html.customData": ["./html.html-data.json"],
+  "livePreview.serverRoot": "./public"
+}

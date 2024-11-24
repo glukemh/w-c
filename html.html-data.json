@@ -1,0 +1,12 @@
+{
+	"version": 1.1,
+	"tags": [
+		{
+			"name": "slot-list",
+			"description": "Slot children using their 0-indexed position",
+			"attributes": []
+		}
+	],
+	"globalAttributes": [],
+	"valueSets": []
+}

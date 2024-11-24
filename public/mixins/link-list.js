@@ -12,23 +12,22 @@ export const linkListMixin = (Base) => {
 		/**
 		 * Connect next sibling on every iteration. If not the root, removes the element when done.
 		 * @protected
-		 * @param {AsyncGenerator} iter */
-		async connectSibling(iter) {
-			try {
-				console.debug("~~~ link-list: before", this);
-				for await (const _ of iter) {
-					console.debug("~~~ link-list: inner", _);
-					if (!this.#nextSibling) {
-						this.#nextSibling = /** @type {LinkList} */ (this.cloneNode(true));
-						this.#nextSibling.root = false;
-					}
-					if (!this.#nextSibling.isConnected) {
-						this.after(this.#nextSibling);
-					}
-				}
-				console.debug("~~~ link-list: after");
-			} finally {
-				if (!this.root) this.remove();
+		 * @template T
+		 * @param {AsyncGenerator<T>} iter
+		 * @param {(val: T) => void} [callback] */
+		async connectSibling(iter, callback) {
+			const { value, done } = await iter.next();
+			if (done) {
+				this.remove();
+				return;
+			}
+			callback?.(value);
+			if (!this.#nextSibling) {
+				this.#nextSibling = /** @type {LinkList} */ (this.cloneNode(true));
+				this.#nextSibling.root = false;
+			}
+			if (!this.#nextSibling.isConnected) {
+				this.after(this.#nextSibling);
 			}
 		}
 	}

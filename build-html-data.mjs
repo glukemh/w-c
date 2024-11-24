@@ -1,6 +1,8 @@
 import fs from "fs";
 import path from "path";
 
+const outFile = "html.html-data.json";
+
 const allFiles = getAllFiles(
 	path.join(import.meta.dirname, "public", "components")
 );
@@ -9,10 +11,11 @@ const htmlDataFiles = allFiles.filter((file) =>
 );
 const tags = tagData(htmlDataFiles);
 
-const htmlDataFile = path.join(import.meta.dirname, "html.html-data.json");
+const htmlDataFile = path.join(import.meta.dirname, outFile);
 const htmlData = JSON.parse(fs.readFileSync(htmlDataFile, "utf8"));
 htmlData.tags = tags;
 fs.writeFileSync(htmlDataFile, JSON.stringify(htmlData, null, "\t"));
+console.log("HTMl data written to " + htmlDataFile);
 
 /** @param {string[]} files */
 function tagData(files) {

@@ -1,0 +1,21 @@
+{
+	"version": 1.1,
+	"properties": [
+		{ "name": "--color-accent-color", "description": "Theme accent color" },
+		{
+			"name": "--color-accent-color-text",
+			"description": "Theme accent color text"
+		},
+		{
+			"name": "--color-active-text",
+			"description": "Theme color active text"
+		},
+		{
+			"name": "--color-button-border",
+			"description": "Theme color button border"
+		}
+	],
+	"atDirectives": [],
+	"pseudoClasses": [],
+	"pseudoElements": []
+}

@@ -1,5 +1,8 @@
 {
   "javascript.preferences.importModuleSpecifierEnding": "js",
+  "typescript.preferences.importModuleSpecifier": "relative",
   "html.customData": ["./html.html-data.json"],
+  "css.customData": ["./css.css-data.json"],
+  "css.styleSheets": ["public/assets/global.css"],
   "livePreview.serverRoot": "./public"
 }

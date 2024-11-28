@@ -1,5 +1,5 @@
+import { handleWebSocketFetch } from "/service-worker-lib/room-websocket.js";
 const ctx = castToServiceWorker(self);
-ctx.importScripts("/service-worker-lib/room-websocket.js");
 
 console.log("new service worker");
 const cacheName = "v1";

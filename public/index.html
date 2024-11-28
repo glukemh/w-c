@@ -24,13 +24,12 @@
     }
   }
 
-  on-index.show:not(:state(index)) {
+  on-index.hide:state(index) {
     display: none;
   }
 
-  on-index.hide:state(index) {
+  on-index:not(.hide):not(:state(index)) {
     display: none;
-
   }
 
   .not-found {
@@ -51,14 +50,14 @@
     <nav>
       <ul>
         <li>
-          <on-index class="show"><a>Join Room</a></on-index>
+          <on-index><a>Join Room</a></on-index>
           <on-index class="hide"><a href="index">Join Room</a></on-index>
         <li><a href="rooms">Rooms</a>
         <li><a href="settings">Settings</a>
       </ul>
     </nav>
   </header>
-  <on-index class="show">
+  <on-index>
     <main>
       <h1>Room Number</h1>
       <form action="rooms" method="get">

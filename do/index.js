@@ -1,3 +1,5 @@
+import { DurableObject } from "cloudflare:workers";
+
 /**
  * @typedef {{ ROOM: DurableObjectNamespace }} Env
  */
@@ -8,12 +10,14 @@ export default {
 	},
 };
 
-export class Room {
+export class Room extends DurableObject {
 	/**
 	 * Durable Object constructor
 	 * @param {DurableObjectState} state
+	 * @param {Env} env
 	 */
-	constructor(state) {
+	constructor(state, env) {
+		super(state, env);
 		this.state = state;
 	}
 

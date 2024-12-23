@@ -60,9 +60,9 @@
   <on-index>
     <main>
       <h1>Room Number</h1>
-      <form action="rooms" method="get">
-        <form-params></form-params>
-        <input type="text" name="room-id" placeholder="Enter a room" required>
+      <form action="/api/room/join" method="post">
+        <input type="hidden" name="returnTo" value="/rooms">
+        <input type="text" name="room" placeholder="Enter a room" required>
         <button type="submit">Join</button>
       </form>
     </main>
@@ -70,6 +70,7 @@
   <on-index class="hide">
     <main class="not-found">
       <h1>Page Not Found</h1>
+      <a href="/">Return to Home</a>
     </main>
   </on-index>
 </body>

@@ -1,19 +1,10 @@
-import location from "/state/location.js";
-import ConnectElement from "/mixins/connect-element.js";
-
-export default class OnIndex extends ConnectElement {
-	states = this.attachInternals().states;
-	async handleState() {
-		for await (const url of this.whileConnected(location.values())) {
-			if (url.pathname === "/") {
-				this.states.add("index");
-			} else {
-				this.states.delete("index");
-			}
+export default class OnIndex extends HTMLElement {
+	#states = this.attachInternals().states;
+	constructor() {
+		super();
+		if (location.pathname === "/") {
+			this.#states.add("index");
 		}
-	}
-	connectedCallback() {
-		this.handleState();
 	}
 }
 

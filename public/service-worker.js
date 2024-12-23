@@ -21,7 +21,8 @@ ctx.addEventListener("fetch", async (event) => {
 		}
 	}
 	if (!response) {
-		response = cacheElseFetch(request);
+		response = fetch(request);
+		// response = cacheElseFetch(request);
 	}
 	event.respondWith(response);
 });

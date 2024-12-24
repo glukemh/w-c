@@ -32,7 +32,6 @@ export function roomWSWhenOpen(room) {
 			ws.addEventListener('open', () => {
 				resolve(ws);
 				controller.abort();
-				ws.send('ping');
 			}, options);
 			ws.addEventListener('error', (e) => {
 				reject(e);

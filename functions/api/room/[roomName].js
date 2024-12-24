@@ -7,7 +7,7 @@
  * @param {Parameters<PagesFunction<Env, "roomName">>} args
  * @returns {Promise<Response>} response upgrades to WebSocket connection
  */
-export async function onRequestGet(...args) {
+export async function onRequest(...args) {
 	const [{ request, env, params }] = args;
 	const { roomName } = params;
 	if (typeof roomName !== "string" || roomName.length > 32) {

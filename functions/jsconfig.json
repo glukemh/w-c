@@ -2,13 +2,14 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
-    "lib": ["esnext"],
-    "types": ["../node_modules/@cloudflare/workers-types"],
+    "lib": [
+      "esnext"
+    ],
+    "types": [
+      "@cloudflare/workers-types"
+    ],
     "moduleResolution": "node",
     "strictNullChecks": true,
     "checkJs": true,
-    "paths": {
-      "@cloudflare/workers-types": ["../node_modules/@cloudflare/workers-types"]
-    },
   }
 }

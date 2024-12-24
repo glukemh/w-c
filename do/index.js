@@ -65,6 +65,10 @@ export class Room extends DurableObject {
 		if (typeof rawMessage !== "string") {
 			return;
 		}
+		if (rawMessage === 'ping') {
+			_ws.send('pong');
+			return;
+		}
 		const message = JSON.parse(rawMessage);
 		if (typeof message?.to === "string") {
 			this.broadcastMessageByTag(rawMessage, message.to);

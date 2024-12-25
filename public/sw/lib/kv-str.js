@@ -1,4 +1,4 @@
-import { SchemaStore } from "/sw-lib/db.js";
+import { SchemaStore } from "/sw/lib/db.js";
 
 
 /** @type {SchemaStore<KeyValue>} */

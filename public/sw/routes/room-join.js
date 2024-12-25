@@ -1,7 +1,7 @@
-import { Route } from "/sw-lib/router.js";
-import { roomWSWhenOpen } from "/sw-lib/room-websocket.js";
-import { redirect } from "/sw-lib/response.js";
-import bodyResult from "/sw-lib/body-result.js";
+import { Route } from "/sw/lib/router.js";
+import { roomWSWhenOpen } from "/sw/lib/room-websocket.js";
+import { redirect } from "/sw/lib/response.js";
+import bodyResult from "/sw/lib/body-result.js";
 
 export default new Route('POST', async (req) => {
   try {

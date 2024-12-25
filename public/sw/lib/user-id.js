@@ -1,4 +1,4 @@
-import kv from "./kv-str.js";
+import kv from "/sw/lib/kv-str.js";
 
 const key = 'user-id';
 

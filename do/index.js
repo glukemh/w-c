@@ -31,9 +31,9 @@ export class Room extends DurableObject {
 			return new Response("Expected websocket", { status: 426 });
 		}
 		const url = new URL(request.url);
-		const uid = url.searchParams.get("uid");
-		if (!uid) {
-			return new Response("Expected uid", { status: 400 });
+		const userId = url.searchParams.get("userId");
+		if (!userId) {
+			return new Response('Expected userId', { status: 400 });
 		}
 		let [client, server] = Object.values(new WebSocketPair());
 		/** @type {string[]} */
@@ -41,14 +41,14 @@ export class Room extends DurableObject {
 		for (const ws of this.state.getWebSockets()) {
 			if (ws.readyState !== WebSocket.READY_STATE_OPEN) continue;
 			const attachment = ws.deserializeAttachment();
-			if (attachment?.uid === uid) {
+			if (attachment?.userId === userId) {
 				ws.close();
-			} else if (typeof attachment?.uid === "string") {
-				users.push(attachment.uid);
+			} else if (typeof attachment?.userId === "string") {
+				users.push(attachment.userId);
 			}
 		}
-		this.state.acceptWebSocket(server, [uid]);
-		server.serializeAttachment({ uid });
+		this.state.acceptWebSocket(server, [userId]);
+		server.serializeAttachment({ userId });
 		server.send(JSON.stringify({ users }));
 		return new Response(null, {
 			status: 101,
@@ -73,9 +73,9 @@ export class Room extends DurableObject {
 		if (typeof message?.to === "string") {
 			this.broadcastMessageByTag(rawMessage, message.to);
 		} else if (Array.isArray(message?.to)) {
-			for (const uid of message.to) {
-				if (typeof uid !== "string") continue;
-				this.broadcastMessageByTag(rawMessage, uid);
+			for (const userId of message.to) {
+				if (typeof userId !== "string") continue;
+				this.broadcastMessageByTag(rawMessage, userId);
 			}
 		}
 	}

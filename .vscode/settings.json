@@ -1,8 +1,18 @@
 {
   "javascript.preferences.importModuleSpecifierEnding": "js",
   "typescript.preferences.importModuleSpecifier": "relative",
-  "html.customData": ["./html.html-data.json"],
-  "css.customData": ["./css.css-data.json"],
-  "css.styleSheets": ["public/assets/global.css"],
+  "editor.formatOnSave": true,
+  "javascript.preferences.quoteStyle": "double",
+  "javascript.format.enable": true,
+  "javascript.format.semicolons": "insert",
+  "html.customData": [
+    "./html.html-data.json"
+  ],
+  "css.customData": [
+    "./css.css-data.json"
+  ],
+  "css.styleSheets": [
+    "public/assets/global.css"
+  ],
   "livePreview.serverRoot": "./public"
 }

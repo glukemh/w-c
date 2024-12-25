@@ -1,6 +1,6 @@
 import routes from "/sw-routes/index.js";
 
-const ctx = castToServiceWorker(self);
+const ctx = /** @type {ServiceWorkerGlobalScope} */ (/** @type {unknown} */ (self));
 
 const cacheName = "v1";
 const staticResources = ["/", "/assets/app.js", "/assets/icon-n.svg"];
@@ -56,9 +56,4 @@ async function deleteOldCaches() {
  * @param {Request} request */
 async function cacheElseFetch(request) {
 	return (await caches.match(request)) ?? fetch(request);
-}
-
-/** @param {globalThis} obj */
-function castToServiceWorker(obj) {
-	return /** @type {ServiceWorkerGlobalScope} */ (/** @type {unknown} */ (obj));
 }

@@ -1,3 +1,4 @@
+import "/sw/state/index.js";
 import routes from "/sw/routes/index.js";
 
 const ctx = /** @type {ServiceWorkerGlobalScope} */ (/** @type {unknown} */ (self));

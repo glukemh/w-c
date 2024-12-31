@@ -3,10 +3,17 @@
     "target": "ESNext",
     "strictNullChecks": true,
     "checkJs": true,
-    "lib": ["ESNext", "DOM", "DOM.Iterable", "WebWorker"],
+    "lib": [
+      "ESNext",
+      "DOM",
+      "DOM.Iterable",
+      "WebWorker"
+    ],
     "module": "ESNext",
     "paths": {
-      "/*": ["./public/*"]
+      "/*": [
+        "./public/*"
+      ]
     }
   }
 }

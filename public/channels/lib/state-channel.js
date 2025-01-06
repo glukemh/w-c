@@ -70,10 +70,25 @@ class StateChannel extends GenericChannel {
  * @template T
  * @extends {StateChannel<T[]>} */
 class FilteredStateChannel extends StateChannel {
+  /** @param {string} name name of FilteredStateChannel */
+  static decodeName(name) {
+    try {
+      const i = name.indexOf("/");
+      /** @type {[string, unknown][]} */
+      const filterEntries = JSON.parse(name.slice(i + 1));
+      return {
+        namePrefix: name.slice(0, i),
+        filterEntries: /** @type {[string, unknown][]} */(JSON.parse(name.slice(i + 1)))
+      };
+    } catch (cause) {
+      throw new Error(`Failed to decode channel name from ${name}`, { cause });
+    }
+  }
+
   #filter;
   /**
    * @param {string} namePrefix should not contain '/'
-   * @param {Partial<T>} filter
+   * @param {Partial<T> | string} filter
    * @param {(current: T, next: T) => boolean} isEqual */
   constructor(namePrefix, filter, isEqual) {
     if (namePrefix.includes("/")) throw new Error("namePrefix should not contain '/'");

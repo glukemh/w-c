@@ -14,5 +14,12 @@
   "css.styleSheets": [
     "public/assets/global.css"
   ],
-  "livePreview.serverRoot": "./public"
+  "livePreview.serverRoot": "./public",
+  "cssvar.files": [
+    "public/assets/global.css"
+  ],
+  "cssvar.extensions": [
+    "css",
+    "html"
+  ]
 }

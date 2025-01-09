@@ -1,7 +1,7 @@
 export {
   StateChannel,
   GenericChannel,
-  FilteredStateChannel
+  FilteredStateChannel,
 };
 
 /** @template T */

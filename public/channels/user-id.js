@@ -1,6 +1,6 @@
-import { StateChannel } from "/channels/lib/state-channel.js";
+import RequestChannel from "/lib/request-channel.js";
 
-/** @type {StateChannel<string>} */
-const userId = new StateChannel("user-id");
+/** @type {RequestChannel<State>} */
+export default new RequestChannel("user-id");
 
-export default userId;
+/** @typedef {string} State */

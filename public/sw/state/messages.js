@@ -1,3 +1,6 @@
-import messages from "/channels/messages.js";
+/** @import { State } from "/channels/messages.js" */
+import { SendChannel } from "/sw/lib/send-channel.js";
 
-messages.postMessage([]);
+/** @type {SendChannel<State>} */
+const messages = new SendChannel("messages");
+messages.send([]);

@@ -1,4 +1,3 @@
-import messagesFilteredChannels from "/channels/messages-filtered-channels.js";
 import { FilteredMessagesChannel } from "/channels/messages.js";
 
 /** @type {Map<string, FilteredMessagesChannel>} */

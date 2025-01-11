@@ -1,5 +1,4 @@
-/** @import { FilterRequestAction } from "/lib/request-channel.js" */
-import { RequestChannel, FilterChannel, StateCommunication } from "/lib/request-channel.js";
+import { RequestChannel } from "/lib/request-channel.js";
 
 /**
  * @template T
@@ -12,8 +11,8 @@ export class SendChannel extends RequestChannel {
     super(name);
 
     this.channel.addEventListener("message", ({ data }) => {
-      if (data.action === "request/current" && this.current.length) {
-        this.channel.postMessage({ action: "send/current", value: this.current[0] });
+      if (data.action === "current-request" && this.current.length) {
+        this.channel.postMessage({ action: "current", value: this.current[0] });
       }
     });
   }
@@ -28,13 +27,7 @@ export class SendChannel extends RequestChannel {
   /** @param {T} value */
   send(value) {
     this.current[0] = value;
-    this.channel.postMessage({ action: "send/next", value });
+    this.channel.postMessage({ action: "next", value });
   }
 }
 
-/**
- * @template T
- * @extends {StateCommunication<FilterRequestAction<T>>} */
-export class DynamicChannels extends StateCommunication {
-
-}

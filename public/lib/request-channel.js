@@ -2,7 +2,7 @@ import { GenericChannel } from "/lib/state-channel.js";
 
 export { RequestChannel, FilterChannel, StateCommunication };
 
-/** @template {Actions} T */
+/** @template {Action} T */
 class StateCommunication {
   /** @type {GenericChannel<T>} */
   #channel;
@@ -17,18 +17,22 @@ class StateCommunication {
 
 /**
  * @template T
- * @extends {StateCommunication<RequestAction | SendAction<T> | CloseAction | FilterRequestAction<T>>} */
+ * @extends {StateCommunication<RequestAction<T>>} */
 class RequestChannel extends StateCommunication {
+  #closed = false;
+  get closed() { return this.#closed; }
   /** @param {string} channelName */
   constructor(channelName) {
     super(channelName);
+    this.onClose(() => {
+      this.channel.close();
+      this.#closed = true;
+    });
+  }
+  /** @param {() => void} callback */
+  onClose(callback) {
     this.channel.addEventListener("message", ({ data }) => {
-      switch (data.action) {
-        case "request/close":
-        case "send/close":
-          this.channel.close();
-          break;
-      }
+      if (data.action === "close") callback();
     });
   }
   request() {
@@ -36,14 +40,14 @@ class RequestChannel extends StateCommunication {
     return /** @type {Promise<T>} */(new Promise((resolve) => {
       this.channel.addEventListener("message", ({ data }) => {
         switch (data.action) {
-          case "send/current":
-          case "send/next":
+          case "current":
+          case "next":
             resolve(data.value);
             controller.abort();
             break;
         }
       }, { signal: controller.signal });
-      this.channel.postMessage({ action: "request/current" });
+      this.channel.postMessage({ action: "current-request" });
     }));
   }
 
@@ -63,22 +67,18 @@ class RequestChannel extends StateCommunication {
       const vals = [await this.request()];
       /** @type {PromiseWithResolvers<boolean>} */
       let next = Promise.withResolvers();
+      this.onClose(() => {
+        next.resolve(false);
+      });
       this.channel.addEventListener("message", ({ data }) => {
-        switch (data.action) {
-          case "send/next":
-            vals.push(data.value);
-            next.resolve(true);
-            next = Promise.withResolvers();
-            break;
-          case "request/close":
-          case "send/close":
-            next.resolve(false);
-            break;
+        if (data.action === "next") {
+          vals.push(data.value);
+          next.resolve(true);
+          next = Promise.withResolvers();
         }
       }, { signal: controller.signal });
       do {
-        yield* vals;
-        vals.splice(0);
+        yield* vals.splice(0);
       } while (await next.promise);
     } finally {
       controller.abort();
@@ -86,63 +86,34 @@ class RequestChannel extends StateCommunication {
   }
 
   close() {
-    this.channel.postMessage({ action: "request/close" });
+    this.channel.postMessage({ action: "close" });
   }
 }
 
 /**
  * @template T resulting request channel state
  * @template F filter
- * @extends {StateCommunication<FilterRequestAction<F>>} */
-class FilterChannel extends StateCommunication {
+ * @extends {RequestChannel<{ channel: string, filter: F }>} */
+class FilterChannel extends RequestChannel {
   static #id = 0;
 
-  /** @param {string} channelName */
-  constructor(channelName) {
-    super(channelName);
-  }
-
   /** @param {F} filter */
-  requestChannel(filter) {
+  newChannel(filter) {
     /** @type {RequestChannel<T>} */
     const reqChannel = new RequestChannel(`${this.name} filter-${FilterChannel.#id++}`);
-    this.channel.postMessage({ action: "request/filter", filter, channel: reqChannel.name });
+    this.channel.postMessage({ action: "next", value: { filter, channel: reqChannel.name } });
     return reqChannel;
   }
 }
 
 /**
- * @typedef {RequestAction | FilterRequestAction<unknown> | SendAction<unknown> | CloseAction} Actions
+ * @typedef {"current-request" | "current" | "next" | "close"} ActionType
  */
 /**
- * @typedef RequestAction
- * @prop {Action<"request", "current">} action
- */
-/**
- * @template T
- * @typedef FilterRequestAction
- * @prop {Action<"request", "filter">} action
- * @prop {T} filter
- * @prop {string} channel
+ * @typedef {{ action: ActionType }} Action
  */
 /**
  * @template T
- * @typedef SendAction
- * @prop {Action<"send", "current" | "next">} action
- * @prop {T} value
+ * @typedef { { action: "current-request" } | { action: "current", value: T } | { action: "next", value: T } | { action: "close" } } RequestAction
  */
-/**
- * @typedef CloseAction
- * @prop {Action<"send" | "request", "close">} action
- */
-/**
- * @template {ActionSender} U
- * @template {ActionType} T
- * @typedef {`${U}/${T}`} Action
- */
-/**
- * @typedef {"current" | "next" | "filter" | "close" } ActionType
- */
-/**
- * @typedef {"send" | "request"} ActionSender
- */
+

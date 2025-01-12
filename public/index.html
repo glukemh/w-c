@@ -7,8 +7,6 @@
 <script src="assets/app.js" type="module"></script>
 <script src="components/form-params.js" type="module"></script>
 <script src="components/on-index.js" type="module"></script>
-<script src="components/room-list/element.js" type="module"></script>
-<script src="components/room-name/element.js" type="module"></script>
 <style>
   @import url(assets/global.css) layer(base);
   @import url(assets/element-resets.css) layer(base);
@@ -62,16 +60,8 @@
   <on-index>
     <main>
       <h1>Room Number</h1>
-      <style>
-        room-list:not(:state(context)) {
-          display: none;
-        }
-      </style>
-      <room-list>
-        <p>Active room: <room-name></room-name></p>
-      </room-list>
       <form action="/api/room/join" method="post">
-        <input type="hidden" name="returnTo" value="/">
+        <input type="hidden" name="returnTo" value="/rooms">
         <input type="text" name="room" placeholder="Enter a room" required>
         <button type="submit">Join</button>
       </form>

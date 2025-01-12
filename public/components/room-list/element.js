@@ -10,14 +10,18 @@ export default class RoomList extends contextElementMixin(linkListMixin(ConnectE
   link = this.newLink((set, [next], [current]) => {
     if (next === current) return;
     if (next === undefined) {
-      this.#internals.states.delete("context");
+      this.#internals.states.add("empty-link-list");
       return;
     }
 
-    this.#internals.states.add("context");
+    this.#internals.states.delete("empty-link-list");
     set(next);
   });
   contextListener = this.context(RoomListContextEvent, this.link.values);
+  constructor() {
+    super();
+    this.#internals.states.add("empty-link-list");
+  }
   connectedCallback() {
     this.contextListener({ signal: this.connectSignal });
     if (!this.isRoot) return;

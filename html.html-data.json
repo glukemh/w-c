@@ -12,6 +12,11 @@
 			"attributes": []
 		},
 		{
+			"name": "room-name-input",
+			"description": "In a room context, renders the room name",
+			"attributes": []
+		},
+		{
 			"name": "slot-list",
 			"description": "Slot children by their 0-indexed position",
 			"attributes": []

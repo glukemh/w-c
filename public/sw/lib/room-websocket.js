@@ -58,6 +58,14 @@ export async function roomWSWhenOpen(room) {
 	});
 }
 
+/**
+ * @param {string} room */
+export async function closeRoomWebSocket(room) {
+	const current = await rooms.request();
+	if (!current.has(room)) return;
+	rooms.send(new Set([...current].filter((r) => r !== room)));
+}
+
 /** @param {string} room */
 async function createRoomWebSocket(room) {
 	const url = new URL(`/api/room/${room}`, location.origin);

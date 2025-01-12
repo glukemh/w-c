@@ -1,9 +1,10 @@
+import { fileURLToPath } from "url";
 import fs from "fs";
 import path from "path";
 
 const htmlDataExt = ".html-data.json";
 const outFile = "html" + htmlDataExt;
-const { dirname } = import.meta;
+const { dirname = path.dirname(fileURLToPath(import.meta.url)) } = import.meta;
 const htmlDataFile = path.join(dirname, outFile);
 const componentsFolder = path.join(dirname, "public", "components");
 

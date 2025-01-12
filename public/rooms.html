@@ -5,7 +5,6 @@
 <link rel="icon" href="assets/icon-n.svg">
 <link rel="manifest" href="manifest.json">
 <script src="assets/app.js" type="module"></script>
-<script src="components/form-params.js" type="module"></script>
 <script src="components/room-list/element.js" type="module"></script>
 <script src="components/room-name/element.js" type="module"></script>
 <script src="components/room-name-input/element.js" type="module"></script>
@@ -38,7 +37,7 @@
     }
   }
 
-  room-ids {
+  .room-list-grid {
     box-sizing: border-box;
     display: grid;
     padding: 16px;
@@ -52,12 +51,12 @@
     text-align: center;
   }
 
-  room-id-iter {
+  room-list {
     scroll-snap-align: center;
     border: 1px solid var(--color-button-border);
     border-radius: 10px;
 
-    &:state(empty) {
+    &:not(:defined) {
       display: none;
     }
   }
@@ -74,23 +73,25 @@
     </nav>
   </header>
   <main>
-    <room-list>
-      <h2><room-name></room-name></h2>
-      <form method="post" action="/api/room/leave">
-        <input type="hidden" name="returnTo" value="/rooms">
-        <room-name-input name="room"></room-name-input>
-        <button type="submit">Leave</button>
-      </form>
-      <room-messages>
-        <room-message-iter>
-          <room-message></room-message>
-        </room-message-iter>
-      </room-messages>
-      <form method="post">
-        <message-room></message-room>
-        <input type="text" placeholder="Message" required>
-        <button type="submit">Send</button>
-      </form>
-    </room-list>
+    <div class="room-list-grid">
+      <room-list>
+        <h2><room-name></room-name></h2>
+        <form method="post" action="/api/room/leave">
+          <input type="hidden" name="returnTo" value="/rooms">
+          <room-name-input name="room"></room-name-input>
+          <button type="submit">Leave</button>
+        </form>
+        <room-messages>
+          <room-message-iter>
+            <room-message></room-message>
+          </room-message-iter>
+        </room-messages>
+        <form method="post">
+          <message-room></message-room>
+          <input type="text" placeholder="Message" required>
+          <button type="submit">Send</button>
+        </form>
+      </room-list>
+    </div>
   </main>
 </body>

@@ -1,0 +1,10 @@
+{
+  "version": 1.1,
+  "tags": [
+    {
+      "name": "on-index",
+      "description": "Use on-index:state(index) to style index page differently from 404 pages",
+      "attributes": []
+    }
+  ]
+}

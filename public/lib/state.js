@@ -12,6 +12,11 @@ export default class State {
     this.#next = Promise.withResolvers();
   }
 
+  /** @param {(set: (val: T) => void, current: [T] | []) => void } callback */
+  update(callback) {
+    callback((val) => this.set(val), this.#current);
+  }
+
   get current() {
     return new Promise(async (resolve, reject) => {
       let resolved = false;
@@ -32,8 +37,10 @@ export default class State {
   }
 
   async * #subscribe() {
+    let p;
     do {
+      p = this.#next.promise;
       yield* this.#current;
-    } while (await this.#next.promise);
+    } while (await p);
   }
 }

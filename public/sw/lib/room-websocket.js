@@ -60,7 +60,6 @@ export async function roomWSWhenOpen(room) {
 
 /** @param {string} room */
 async function createRoomWebSocket(room) {
-	console.debug('creating websocket start', room);
 	const url = new URL(`/api/room/${room}`, location.origin);
 	const uid = await userId.request();
 	url.searchParams.set('userId', uid);
@@ -70,6 +69,5 @@ async function createRoomWebSocket(room) {
 	if (!roomsSet.has(room)) {
 		rooms.send(new Set([...roomsSet, room]));
 	}
-	console.debug('created websocket', room);
 	return ws;
 }

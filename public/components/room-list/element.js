@@ -1,18 +1,25 @@
 /** @import { Link } from "/mixins/link-list.js" */
 import rooms from "/channels/rooms.js";
 import ConnectElement from "/mixins/connect-element.js";
+import { contextElementMixin, ContextEvent } from "/mixins/context-element.js";
 import { linkListMixin } from "/mixins/link-list.js";
 
-export default class RoomList extends linkListMixin(ConnectElement) {
-  shadow = this.attachShadow({ mode: "open" });
+export default class RoomList extends contextElementMixin(linkListMixin(ConnectElement)) {
+  #internals = this.attachInternals();
   /** @type {Link<string>} */
-  get link() { return super.link; }
+  link = this.newLink((set, [next], [current]) => {
+    if (next === current) return;
+    if (next === undefined) {
+      this.#internals.states.delete("context");
+      return;
+    }
+
+    this.#internals.states.add("context");
+    set(next);
+  });
+  contextListener = this.context(RoomListContextEvent, this.link.values);
   connectedCallback() {
-    this.link.value(async (iter) => {
-      for await (const room of iter) {
-        this.shadow.textContent = room;
-      }
-    });
+    this.contextListener({ signal: this.connectSignal });
     if (!this.isRoot) return;
     this.whileConnected(rooms.subscribe(async (iter) => {
       for await (const rooms of iter) {
@@ -20,6 +27,11 @@ export default class RoomList extends linkListMixin(ConnectElement) {
       }
     }));
   }
+}
+
+/** @extends {ContextEvent<string>} */
+export class RoomListContextEvent extends ContextEvent {
+  static type = "room-list-context";
 }
 
 customElements.define("room-list", RoomList);

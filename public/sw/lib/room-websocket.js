@@ -1,21 +1,22 @@
-import rooms from "/channels/rooms.js";
-import userId from "/channels/user-id.js";
+import rooms from "/sw/state/rooms.js";
+import userId from "/sw/state/user-id.js";
 
 
 /** @type {Map<string, WebSocket>} */
 const connections = new Map();
-rooms.addEventListener("message", async (event) => {
-	const roomsSet = new Set(event.data);
-	for (const [room, ws] of connections) {
-		if (roomsSet.has(room)) {
-			roomsSet.delete(room);
-			continue;
-		};
-		ws.close(undefined, "rooms changed");
-		connections.delete(room);
+rooms.subscribe(async (iter) => {
+	for await (const roomsSet of iter) {
+		for (const [room, ws] of connections) {
+			if (roomsSet.has(room)) {
+				roomsSet.delete(room);
+				continue;
+			};
+			ws.close(undefined, "rooms changed");
+			connections.delete(room);
+		}
+		// new rooms
+		roomsSet.forEach(createRoomWebSocket);
 	}
-	// new rooms
-	roomsSet.forEach(createRoomWebSocket);
 });
 
 /** @param {string} room room id */
@@ -59,18 +60,16 @@ export async function roomWSWhenOpen(room) {
 
 /** @param {string} room */
 async function createRoomWebSocket(room) {
+	console.debug('creating websocket start', room);
 	const url = new URL(`/api/room/${room}`, location.origin);
-	for await (const uid of userId.subscribe()) {
-		url.searchParams.set('userId', uid);
-		break;
-	}
+	const uid = await userId.request();
+	url.searchParams.set('userId', uid);
 	const ws = new WebSocket(url);
 	connections.set(room, ws);
-	for await (const roomsList of rooms.subscribe()) {
-		if (!roomsList.includes(room)) {
-			rooms.postMessage([...roomsList, room]);
-		}
-		break;
+	const roomsSet = await rooms.request();
+	if (!roomsSet.has(room)) {
+		rooms.send(new Set([...roomsSet, room]));
 	}
+	console.debug('created websocket', room);
 	return ws;
 }

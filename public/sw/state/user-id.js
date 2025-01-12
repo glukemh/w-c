@@ -11,7 +11,7 @@ kv.get(key).then(async result => {
     userId.send(result.value);
   } else {
     const value = Math.random().toString(36).substring(2);
-    await kv.add({ key, value }, key);
+    await kv.add({ key, value });
     userId.send(value);
   }
 });

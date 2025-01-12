@@ -1,3 +1,5 @@
+import State from "/lib/state.js";
+
 /**
  * @template {CustomElementConstructor} T
  * @param {T} Base */
@@ -7,28 +9,41 @@ export const linkListMixin = (Base) => {
 	 * @extends Base */
 	class LinkList extends Base {
 		/** @type {LinkList | null} */
-		#nextSibling = null;
-		root = true;
-		/**
-		 * Connect next sibling on every iteration. If not the root, removes the element when done.
-		 * @protected
-		 * @template T
-		 * @param {AsyncGenerator<T>} iter
-		 * @param {(val: T) => void} [callback] */
-		async connectSibling(iter, callback) {
-			const { value, done } = await iter.next();
-			if (done) {
-				this.remove();
-				return;
-			}
-			callback?.(value);
-			if (!this.#nextSibling) {
-				this.#nextSibling = /** @type {LinkList} */ (this.cloneNode(true));
-				this.#nextSibling.root = false;
-			}
-			if (!this.#nextSibling.isConnected) {
-				this.after(this.#nextSibling);
-			}
+		prev = null;
+		/** @type {LinkList | null} */
+		next = null;
+		get isRoot() { return this.prev === null; }
+
+		#link = this.#newLink();
+		get link() { return this.#link; }
+		/** @template S */
+		#newLink() {
+			/** @type {State<S>} */
+			const value = new State();
+			/** @param {IteratorObject<S, undefined, unknown>} iter */
+			const newIter = (iter) => {
+				const next = iter.next();
+				this.next?.link?.newIter(iter);
+				if (next.done) {
+					if (!this.isRoot) this.remove();
+				} else {
+					value.set(next.value);
+					if (!this.isConnected) {
+						this.prev?.after(this);
+					}
+					if (!this.next) {
+						this.next = /** @type {LinkList} */(this.cloneNode(true));
+						this.next.prev = this;
+						this.next.link?.newIter(iter);
+					}
+				}
+			};
+			return /** @type {Link<S>} */({
+				value(callback) {
+					return value.subscribe(callback);
+				},
+				newIter(iter) { newIter(iter); }
+			});
 		}
 	}
 
@@ -36,5 +51,11 @@ export const linkListMixin = (Base) => {
 };
 
 const LinkList = linkListMixin(HTMLElement);
-
 export default LinkList;
+
+/**
+ * @template T
+ * @typedef Link
+ * @prop {State<T>["subscribe"]} value
+ * @prop {(iter: IteratorObject<T, undefined, unknown>) => void} newIter
+ */

@@ -2,6 +2,16 @@
 	"version": 1.1,
 	"tags": [
 		{
+			"name": "room-list",
+			"description": "Generates a list providing a context for each active room",
+			"attributes": []
+		},
+		{
+			"name": "room-name",
+			"description": "In a room context, renders the room name",
+			"attributes": []
+		},
+		{
 			"name": "slot-list",
 			"description": "Slot children by their 0-indexed position",
 			"attributes": []

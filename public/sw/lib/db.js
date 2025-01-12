@@ -53,7 +53,7 @@ export class SchemaStore {
 
   /** 
    * @param {T} value
-   * @param {Parameters<IDBObjectStore['add']>[1]} key
+   * @param {Parameters<IDBObjectStore['add']>[1]} [key]
    */
   async add(value, key) {
     const store = await this.#store;
@@ -63,7 +63,7 @@ export class SchemaStore {
 
   /** 
    * @param {T} value
-   * @param {Parameters<IDBObjectStore['add']>[1]} key
+   * @param {Parameters<IDBObjectStore['add']>[1]} [key]
    */
   async put(value, key) {
     const store = await this.#store;

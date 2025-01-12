@@ -1,0 +1,10 @@
+{
+  "version": 1.1,
+  "tags": [
+    {
+      "name": "room-name",
+      "description": "In a room context, renders the room name",
+      "attributes": []
+    }
+  ]
+}

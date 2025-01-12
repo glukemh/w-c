@@ -1,3 +1,5 @@
+import "/lib/navigation-focus.js";
+
 try {
 	const registration = await navigator.serviceWorker.register(
 		"/service-worker.js",
@@ -10,5 +12,3 @@ try {
 } catch (error) {
 	console.error("ServiceWorker registration failed: ", error);
 }
-
-export {};

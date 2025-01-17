@@ -1,32 +1,29 @@
-/** @import { Filter } from "/channels/messages-filtered.js" */
-/** @import { State } from "/channels/messages.js" */
-import { SendChannel } from "/sw/lib/send-channel.js";
 import messages from "/channels/messages.js";
-import messagesFiltered from "/channels/messages-filtered.js";
+import messagesFiltered, { SendMessagesFiltered } from "/channels/messages-filtered.js";
 
 
-/** @type {Map<string, { channel: SendChannel<State>, filter: Filter}>} */
+/** @type {Map<string, SendMessagesFiltered>}>} */
 const filteredChannels = new Map();
 messagesFiltered.subscribe(async (iter) => {
   for await (const { channel, filter } of iter) {
     let filteredChannel = filteredChannels.get(channel);
     if (filteredChannel) {
       filteredChannel.filter = filter;
+      filteredChannel.send(await messages.request());
       continue;
     }
-    filteredChannel = { filter, channel: new SendChannel(channel) };
+    filteredChannel = new SendMessagesFiltered(channel, filter);
     filteredChannels.set(channel, filteredChannel);
-    filteredChannel.channel.onClose(() => {
+    filteredChannel.onClose(() => {
       filteredChannels.delete(channel);
     });
     messages.onClose(() => {
-      filteredChannel.channel.close();
+      filteredChannel.close();
     });
     messages.subscribe(async (iter) => {
       for await (const messageArr of iter) {
-        if (filteredChannel.channel.closed) break;
-        const filteredMessages = messageArr.filter((message) => message.room === filteredChannel.filter.room);
-        filteredChannel.channel.send(filteredMessages);
+        if (filteredChannel.closed) break;
+        filteredChannel.send(messageArr);
       }
     });
   }

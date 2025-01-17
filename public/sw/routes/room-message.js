@@ -15,6 +15,7 @@ export default new Route('POST', async (req) => {
       return badInput('Expecting room and message to be strings');
     }
     const ws = await roomWSWhenOpen(room);
+
     return returnTo(result);
   } catch (e) {
     return somethingWrong(e);

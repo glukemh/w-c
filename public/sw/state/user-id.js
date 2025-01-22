@@ -1,19 +1,25 @@
 /** @import { State } from "/channels/user-id.js" */
+/** @import { UserId } from "/lib/validate-user-id.js" */
 import kv from "/sw/lib/kv-str.js";
 import { SendChannel } from "/sw/lib/send-channel.js";
+import validateUserId from "/lib/validate-user-id.js";
 
 /** @type {SendChannel<State>} */
 const userId = new SendChannel("user-id");
 const key = 'user-id';
 
 kv.get(key).then(async result => {
-  if (result) {
-    userId.send(result.value);
+  /** @type {UserId} */
+  let id;
+  if (result && validateUserId(result.value)) {
+    id = result.value;
   } else {
     const value = Math.random().toString(36).substring(2);
+    if (!validateUserId(value)) return;
     await kv.add({ key, value });
-    userId.send(value);
+    id = value;
   }
+  userId.send(id);
 });
 
 export default userId;

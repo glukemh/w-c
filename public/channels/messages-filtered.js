@@ -1,4 +1,4 @@
-/** @import { Message, State } from "/channels/messages.js" */
+/** @import { Message, State as MessagesState } from "/channels/messages.js" */
 import { FilterChannel } from "/lib/request-channel.js";
 import { SendChannel } from "/sw/lib/send-channel.js";
 
@@ -20,7 +20,5 @@ export class SendMessagesFiltered extends SendChannel {
   }
 }
 
-/** 
- * @typedef Filter
- * @prop {Message['room']} room
- */
+/** @typedef {Parameters<MessagesState['get']>[0]} Filter */
+/** @typedef {Exclude<ReturnType<MessagesState['get']>, undefined>} State */

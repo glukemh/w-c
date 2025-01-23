@@ -1,7 +1,7 @@
 /** @import { State } from "/channels/user-id.js" */
 /** @import { UserId } from "/lib/validate-user-id.js" */
 import kv from "/sw/lib/kv-str.js";
-import { SendChannel } from "/sw/lib/send-channel.js";
+import { SendChannel } from "/lib/state-channel.js";
 import validateUserId from "/lib/validate-user-id.js";
 
 /** @type {SendChannel<State>} */

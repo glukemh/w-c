@@ -1,5 +1,5 @@
 /** @import { State } from "/channels/rooms.js" */
-import { SendChannel } from "/sw/lib/send-channel.js";
+import { SendChannel } from "/lib/state-channel.js";
 import userId from "/sw/state/user-id.js";
 
 /** @type {SendChannel<State>} */

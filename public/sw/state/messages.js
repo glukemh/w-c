@@ -1,5 +1,5 @@
 /** @import { State } from "/channels/messages.js" */
-import { SendChannel } from "/sw/lib/send-channel.js";
+import { SendChannel } from "/lib/state-channel.js";
 
 /** @type {SendChannel<State>} */
 const messages = new SendChannel("messages");

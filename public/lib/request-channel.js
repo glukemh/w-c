@@ -33,7 +33,7 @@ class RequestChannel extends StateCommunication {
   onClose(callback) {
     this.channel.addEventListener("message", ({ data }) => {
       if (data.action === "close") callback();
-    });
+    }, { once: true });
   }
   request() {
     const controller = new AbortController();

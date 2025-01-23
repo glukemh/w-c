@@ -1,7 +1,6 @@
 export {
   StateChannel,
   GenericChannel,
-  FilteredStateChannel,
 };
 
 /** @template T */
@@ -63,45 +62,5 @@ class StateChannel extends GenericChannel {
   close() {
     this.#next.resolve(false);
     super.close();
-  }
-}
-
-/**
- * @template T
- * @extends {StateChannel<T[]>} */
-class FilteredStateChannel extends StateChannel {
-  /** @param {string} name name of FilteredStateChannel */
-  static decodeName(name) {
-    try {
-      const i = name.indexOf("/");
-      /** @type {[string, unknown][]} */
-      const filterEntries = JSON.parse(name.slice(i + 1));
-      return {
-        namePrefix: name.slice(0, i),
-        filterEntries: /** @type {[string, unknown][]} */(JSON.parse(name.slice(i + 1)))
-      };
-    } catch (cause) {
-      throw new Error(`Failed to decode channel name from ${name}`, { cause });
-    }
-  }
-
-  #filter;
-  /**
-   * @param {string} namePrefix should not contain '/'
-   * @param {Partial<T> | string} filter
-   * @param {(current: T, next: T) => boolean} isEqual */
-  constructor(namePrefix, filter, isEqual) {
-    if (namePrefix.includes("/")) throw new Error("namePrefix should not contain '/'");
-    const filterEntries = Object.entries(filter);
-    const name = namePrefix + "/" + JSON.stringify(filterEntries.sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0));
-    super(name, (a, b) => a.length === b.length && a.every((m, i) => isEqual(m, b[i])));
-    this.#filter = filterEntries;
-  }
-
-  /** @param {T[]} message */
-  postMessage(message) {
-    super.postMessage(message.filter(m => {
-      return this.#filter.every(([k, v]) => m[k] === v);
-    }));
   }
 }

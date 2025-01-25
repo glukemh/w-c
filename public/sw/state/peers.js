@@ -1,34 +1,34 @@
 /** @import { Room } from "/lib/validate-room.js" */
-/** @import { State, ConnectedUser } from "/channels/connected-users.js" */
+/** @import { State, Peer } from "/channels/peers.js" */
 import { SendChannel } from "/lib/state-channel.js";
 import rooms from "/channels/rooms.js";
 
 /** @type {SendChannel<State>} */
-const connectedUsers = new SendChannel("connected-users");
-connectedUsers.send(new Map());
+const peers = new SendChannel("peers");
+peers.send(new Map());
 
 rooms.subscribe(async (iter) => {
   for await (const roomsSet of iter) {
-    const connectedUsersState = await connectedUsers.request();
-    const connectedUsersRooms = new Set(connectedUsersState.keys());
-    const roomsToAdd = roomsSet.difference(connectedUsersRooms);
-    const roomsToRemove = connectedUsersRooms.difference(roomsSet);
+    const peersState = await peers.request();
+    const peersRooms = new Set(peersState.keys());
+    const roomsToAdd = roomsSet.difference(peersRooms);
+    const roomsToRemove = peersRooms.difference(roomsSet);
     for (const room of roomsToAdd) {
-      connectedUsersState.set(room, []);
+      peersState.set(room, []);
     }
     for (const room of roomsToRemove) {
-      connectedUsersState.delete(room);
+      peersState.delete(room);
     }
-    connectedUsers.send(connectedUsersState);
+    peers.send(peersState);
   }
 });
 
 /**
  * @param {Room} room
- * @param {ConnectedUser[]} connectedUsersList */
-export async function setConnectedUsers(room, connectedUsersList) {
-  const currentState = await connectedUsers.request();
+ * @param {Peer[]} peersList */
+export async function setPeers(room, peersList) {
+  const currentState = await peers.request();
   if (!currentState.has(room)) return;
-  currentState.set(room, connectedUsersList);
-  connectedUsers.send(currentState);
+  currentState.set(room, peersList);
+  peers.send(currentState);
 }

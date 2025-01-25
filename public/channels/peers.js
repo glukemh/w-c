@@ -3,11 +3,11 @@
 import { RequestChannel } from "/lib/state-channel.js";
 
 /** @type {RequestChannel<State>} */
-export default new RequestChannel("connected-users");
+export default new RequestChannel("peers");
 
-/** @typedef {Map<Room, ConnectedUser[]>} State */
+/** @typedef {Map<Room, Peer[]>} State */
 
 /**
- * @typedef ConnectedUser 
+ * @typedef Peer 
  * @prop {UserId} user
  * @prop {string} connectionStatus */

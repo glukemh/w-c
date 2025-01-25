@@ -65,11 +65,14 @@ class RequestChannel extends StateCommunication {
     try {
       /** @type {T[]} */
       const vals = [await this.request()];
+
       /** @type {PromiseWithResolvers<boolean>} */
       let next = Promise.withResolvers();
+
       this.onClose(() => {
         next.resolve(false);
       });
+
       this.channel.addEventListener("message", ({ data }) => {
         if (data.action === "next") {
           vals.push(data.value);
@@ -77,9 +80,10 @@ class RequestChannel extends StateCommunication {
           next = Promise.withResolvers();
         }
       }, { signal: controller.signal });
-      do {
+
+      while (vals.length || await next.promise) {
         yield* vals.splice(0);
-      } while (await next.promise);
+      }
     } finally {
       controller.abort();
     }
@@ -169,7 +173,7 @@ class SingleSourceChannel extends SendChannel {
  * @template C context value
  * @extends {RequestChannel<{ channel: string, context: C }>} */
 class ContextChannel extends RequestChannel {
-  static #id = 0;
+  static #id = 0n;
 
   /** @param {C} context */
   newRequestChannel(context) {

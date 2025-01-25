@@ -1,3 +1,4 @@
+import validateRoom from "/lib/validate-room.js";
 import { Route } from "/sw/lib/router.js";
 import { roomWSWhenOpen } from "/sw/lib/room-websocket.js";
 import { returnTo, badInput, somethingWrong } from "/sw/lib/response.js";
@@ -11,8 +12,11 @@ export default new Route('POST', async (req) => {
     }
     const room = result.get('room');
     const message = result.get('message');
-    if (typeof room !== 'string' || typeof message !== 'string') {
-      return badInput('Expecting room and message to be strings');
+    if (!validateRoom(room)) {
+      return badInput('Expecting room to be a valid room name');
+    }
+    if (typeof message !== 'string') {
+      return badInput('Expecting message to be a string');
     }
     const ws = await roomWSWhenOpen(room);
 

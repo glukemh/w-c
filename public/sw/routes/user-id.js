@@ -1,4 +1,5 @@
-import userId from "/channels/user-id.js";
+import validateUserId from "/lib/validate-user-id.js";
+import userId from "/sw/state/user-id.js";
 import { Route } from "/sw/lib/router.js";
 import { returnTo, badInput, somethingWrong } from "/sw/lib/response.js";
 import bodyResult from "/sw/lib/body-result.js";
@@ -10,10 +11,10 @@ export default new Route('POST', async (req) => {
       return badInput(result);
     }
     const userIdEntry = result.get('userId');
-    if (typeof userIdEntry !== 'string') {
+    if (!validateUserId(userIdEntry)) {
       return badInput('Expecting userId to be a string');
     }
-    userId.postMessage(userIdEntry);
+    userId.send(userIdEntry);
     return returnTo(result);
   } catch (e) {
     return somethingWrong(e);

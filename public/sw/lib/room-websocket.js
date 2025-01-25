@@ -1,8 +1,9 @@
+/** @import { Room } from "/lib/validate-room.js" */
 import rooms from "/sw/state/rooms.js";
 import userId from "/sw/state/user-id.js";
 
 
-/** @type {Map<string, WebSocket>} */
+/** @type {Map<Room, WebSocket>} */
 const connections = new Map();
 rooms.subscribe(async (iter) => {
 	for await (const roomsSet of iter) {
@@ -19,7 +20,7 @@ rooms.subscribe(async (iter) => {
 	}
 });
 
-/** @param {string} room room id */
+/** @param {Room} room room id */
 export default async function roomWebSocket(room) {
 	let ws = connections.get(room);
 	/** @type {number[]} */
@@ -31,7 +32,7 @@ export default async function roomWebSocket(room) {
 };
 
 /**
- * @param {string} room
+ * @param {Room} room
  * @returns {Promise<WebSocket>}*/
 export async function roomWSWhenOpen(room) {
 	const ws = await roomWebSocket(room);
@@ -59,14 +60,14 @@ export async function roomWSWhenOpen(room) {
 }
 
 /**
- * @param {string} room */
+ * @param {Room} room */
 export async function closeRoomWebSocket(room) {
 	const current = await rooms.request();
 	if (!current.has(room)) return;
 	rooms.send(new Set([...current].filter((r) => r !== room)));
 }
 
-/** @param {string} room */
+/** @param {Room} room */
 async function createRoomWebSocket(room) {
 	const url = new URL(`/api/room/${room}`, location.origin);
 	const uid = await userId.request();

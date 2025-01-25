@@ -1,8 +1,8 @@
 /** @import { Room } from "/lib/validate-room.js" */
-/** @import { State as ConnectedUsersState } from "/channels/connected-users.js" */
+/** @import { State as PeersState } from "/channels/peers.js" */
 import { ContextChannel } from "/lib/state-channel.js";
 
 /** @type {ContextChannel<State, Room>} */
-export default new ContextChannel("connected-users-by-room");
+export default new ContextChannel("peers-by-room");
 
-/** @typedef {ConnectedUsersState extends Map<Room, infer U> ? U : never} State */
+/** @typedef {PeersState extends Map<Room, infer U> ? U : never} State */

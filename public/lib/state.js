@@ -17,6 +17,7 @@ export default class State {
     callback((val) => this.set(val), this.#current);
   }
 
+  /** @returns {Promise<T>} */
   get current() {
     return new Promise(async (resolve, reject) => {
       let resolved = false;
@@ -27,6 +28,17 @@ export default class State {
       }
       if (!resolved) reject(new Error("Value was never set"));
     });
+  }
+
+  /** @param {AsyncGenerator<T, void, unknown>} iter */
+  async source(iter) {
+    try {
+      for await (const value of iter) {
+        this.set(value);
+      }
+    } finally {
+      this.#next.resolve(false);
+    }
   }
 
   /** @param {(iter: AsyncGenerator<T, void, unknown>) => void } [callback] */

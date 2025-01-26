@@ -58,15 +58,15 @@ export class Room extends DurableObject {
 
 	/**
 	 * Effectively a "message" event listener for a WebSocket accepted via state.acceptWebSocket()
-	 * @param {WebSocket} _ws
+	 * @param {WebSocket} ws
 	 * @param {string | ArrayBuffer} rawMessage
 	 */
-	webSocketMessage(_ws, rawMessage) {
+	webSocketMessage(ws, rawMessage) {
 		if (typeof rawMessage !== "string") {
 			return;
 		}
 		if (rawMessage === 'ping') {
-			_ws.send('pong');
+			ws.send('pong');
 			return;
 		}
 		const message = JSON.parse(rawMessage);

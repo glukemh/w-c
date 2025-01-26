@@ -4,15 +4,15 @@ import messagesByRoom from "/channels/messages-by-room.js";
 
 messagesByRoom.answerRequest(async (iter) => {
   for await (const [channel, room] of iter) {
-    channel.source(filteredMessagesSource(room));
+    channel.source(messagesByRoomSource(room));
   }
 });
 
 /** @param {Room} room */
-async function* filteredMessagesSource(room) {
+async function* messagesByRoomSource(room) {
   for await (const messageMap of messages.subscribe()) {
     const roomMessages = messageMap.get(room);
-    if (!roomMessages) break;
+    if (!roomMessages) continue;
     yield roomMessages;
   }
 }

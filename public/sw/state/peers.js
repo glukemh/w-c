@@ -46,13 +46,13 @@ function handleWSMessage(room) {
     const currentPeers = await peers.request();
     const roomPeers = currentPeers.get(room);
     if (!roomPeers) return;
-    const uid = await userId.request();
+    const user = await userId.request();
     const message = parse(e.data);
     if ('users' in message) {
-      for (const user of message.users) {
-        if (!validateUserId(user) || uid === user) continue;
-        roomPeers.set(user, { connectionStatus: "connecting" });
-        connectWithPeer(room, user);
+      for (const peer of message.users) {
+        if (!validateUserId(peer) || user === peer) continue;
+        roomPeers.set(peer, { connectionStatus: "connecting" });
+        connectWithPeer(room, peer, user);
       }
     }
   };
@@ -60,12 +60,32 @@ function handleWSMessage(room) {
 
 /**
  * @param {Room} room 
+ * @param {UserId} peer
  * @param {UserId} user 
  */
-async function connectWithPeer(room, user) {
+async function connectWithPeer(room, peer, user) {
   const wsState = await roomWebSockets.current;
   const ws = wsState.get(room);
   if (!ws) return;
+  switch (ws.readyState) {
+    case WebSocket.CONNECTING:
+      ws.addEventListener("open", () => sendOffer(ws, peer, user), { once: true });
+    case WebSocket.OPEN:
+      sendOffer(ws, peer, user);
+      break;
+    case WebSocket.CLOSING:
+    case WebSocket.CLOSED:
+      return;
+  }
+}
+
+/**
+ * @param {WebSocket} ws 
+ * @param {UserId} to 
+ * @param {UserId} from 
+ */
+function sendOffer(ws, to, from) {
+  ws.send(JSON.stringify({ to, type: "offer", from }));
 }
 
 /**

@@ -1,7 +1,9 @@
-/** @param {string} location */
+/**
+ * Redirect to a new location in response to a put or post request
+ * @param {string} location */
 export function redirect(location) {
   return new Response(null, {
-    status: 302,
+    status: 303,
     headers: {
       Location: location
     }
@@ -9,7 +11,8 @@ export function redirect(location) {
 }
 
 /**
- * @param {{ get(key: 'returnTo'): unknown }} input
+ * Redirect to the location specified in the input parameter as 'returnTo'
+ * @param {{ get(key: 'returnTo'): unknown }} input Map or form data object with possible 'returnTo' key
  * @param {string} [defaultLocation] redirect to default location of returnTo is not specified */
 export function returnTo(input, defaultLocation = '/') {
   const returnToEntry = input.get('returnTo');

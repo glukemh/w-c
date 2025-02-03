@@ -1,4 +1,5 @@
 import GenericChannel from "/lib/generic-channel.js";
+import { uniqueIds } from "/lib/unique-id.js";
 
 export { RequestChannel, ContextChannel, StateCommunication, SendChannel };
 
@@ -173,12 +174,16 @@ class SingleSourceChannel extends SendChannel {
  * @template C context value
  * @extends {RequestChannel<{ channel: string, context: C }>} */
 class ContextChannel extends RequestChannel {
-  static #id = 0n;
+  #id = uniqueIds();
+
+  #uniqueId() {
+    return this.#id.next().value;
+  }
 
   /** @param {C} context */
   newRequestChannel(context) {
     /** @type {RequestChannel<T>} */
-    const reqChannel = new RequestChannel(`${this.name} context-${ContextChannel.#id++}`);
+    const reqChannel = new RequestChannel(`${this.name} context-${this.#uniqueId()}`);
     this.channel.postMessage({ action: "next", value: { context, channel: reqChannel.name } });
     return reqChannel;
   }

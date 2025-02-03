@@ -12,7 +12,6 @@ messagesByRoom.answerRequest(async (iter) => {
 async function* messagesByRoomSource(room) {
   for await (const messageMap of messages.subscribe()) {
     const roomMessages = messageMap.get(room);
-    if (!roomMessages) continue;
-    yield roomMessages;
+    if (roomMessages) yield roomMessages;
   }
 }

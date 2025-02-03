@@ -12,8 +12,7 @@ roomWebSocketStatusByRoom.answerRequest(async (iter) => {
 async function* source(room) {
   for await (const messageMap of roomWebSocketStatus.subscribe()) {
     const wsStatus = messageMap.get(room);
-    if (!wsStatus) continue;
-    yield wsStatus;
+    if (wsStatus) yield wsStatus;
   }
 }
 

@@ -12,7 +12,6 @@ peersByRoom.answerRequest(async (iter) => {
 async function* peersByRoomSource(room) {
   for await (const peersState of peers.subscribe()) {
     const roomMessages = peersState.get(room);
-    if (!roomMessages) continue;
-    yield roomMessages;
+    if (roomMessages) yield roomMessages;
   }
 }

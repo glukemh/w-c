@@ -21,7 +21,7 @@ export default class State {
   get current() {
     return new Promise(async (resolve, reject) => {
       let resolved = false;
-      for await (const value of this.subscribe()) {
+      for await (const value of this) {
         resolve(value);
         resolved = true;
         break;
@@ -30,7 +30,7 @@ export default class State {
     });
   }
 
-  /** @param {AsyncGenerator<T, void, unknown>} iter */
+  /** @param {AsyncIterable<T, void, void>} iter */
   async source(iter) {
     try {
       for await (const value of iter) {
@@ -41,18 +41,35 @@ export default class State {
     }
   }
 
-  /** @param {(iter: AsyncGenerator<T, void, unknown>) => void } [callback] */
+  /** @param {(iter: AsyncGenerator<T, void, void>) =>  void } [callback] */
   subscribe(callback) {
-    const iter = this.#subscribe();
+    const iter = this[Symbol.asyncIterator]();
     callback?.(iter);
     return iter;
   }
 
-  async * #subscribe() {
+  [Symbol.asyncIterator]() {
+    const controller = new AbortController();
+    /** @type {Promise<false>} */
+    const finish = new Promise((resolve) => {
+      controller.signal.onabort = () => resolve(false);
+    });
+    const iter = this.#subscribe(finish);
+    /** @type {typeof iter['return']} */
+    const returnIter = iter.return.bind(iter);
+    iter.return = () => {
+      controller.abort();
+      return returnIter();
+    };
+    return iter;
+  }
+
+  /** @param {Promise<false>} finish */
+  async * #subscribe(finish) {
     let p;
     do {
       p = this.#next.promise;
       yield* this.#current;
-    } while (await p);
+    } while (await Promise.race([p, finish]));
   }
 }

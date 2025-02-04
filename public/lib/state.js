@@ -5,50 +5,60 @@ export default class State {
   /** @type {PromiseWithResolvers<boolean>} */
   #next = Promise.withResolvers();
 
-  /** @param {T} value */
-  set(value) {
-    this.#current[0] = value;
-    this.#next.resolve(true);
-    this.#next = Promise.withResolvers();
+  #setIt = this.#set();
+  get set() {
+    return this.#setIt;
   }
 
-  /** @param {(set: (val: T) => void, current: [T] | []) => void } callback */
-  update(callback) {
-    callback((val) => this.set(val), this.#current);
+  #updateIt = this.#update();
+  get update() {
+    return this.#updateIt;
   }
 
-  /** @returns {Promise<T>} */
-  get current() {
-    return new Promise(async (resolve, reject) => {
-      let resolved = false;
-      for await (const value of this) {
-        resolve(value);
-        resolved = true;
-        break;
+  constructor() {
+    this.#setIt.next();
+    this.#updateIt.next();
+  }
+
+  /** @returns {Generator<undefined, void, T>} */
+  * #set() {
+    try {
+      while (true) {
+        this.#current[0] = yield;
+        this.#next.resolve(true);
+        this.#next = Promise.withResolvers();
       }
-      if (!resolved) reject(new Error("Value was never set"));
-    });
+    } finally {
+      this.#next.resolve(false);
+      this.update.return();
+    }
+  }
+
+  /** @returns {Generator<undefined, void, (value: T) => T>} */
+  * #update() {
+    try {
+      while (true) {
+        const f = yield;
+        if (this.#current.length) this.set.next(f(this.#current[0]));
+      }
+    } finally {
+      this.set.return();
+    }
   }
 
   /** @param {AsyncIterable<T, void, void>} iter */
   async source(iter) {
     try {
       for await (const value of iter) {
-        this.set(value);
+        if (this.set.next(value).done) break;
       }
     } finally {
-      this.#next.resolve(false);
+      this.set.return();
     }
   }
 
   /** @param {(iter: AsyncGenerator<T, void, void>) =>  void } [callback] */
   subscribe(callback) {
-    const iter = this[Symbol.asyncIterator]();
-    callback?.(iter);
-    return iter;
-  }
-
-  [Symbol.asyncIterator]() {
     const controller = new AbortController();
     /** @type {Promise<false>} */
     const finish = new Promise((resolve) => {
@@ -61,7 +71,12 @@ export default class State {
       controller.abort();
       return returnIter();
     };
+    callback?.(iter);
     return iter;
+  }
+
+  [Symbol.asyncIterator]() {
+    return this.subscribe();
   }
 
   /** @param {Promise<false>} finish */

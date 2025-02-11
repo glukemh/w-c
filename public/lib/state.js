@@ -1,5 +1,10 @@
 /** @template T */
 export default class State {
+  #closeController = new AbortController();
+  get closed() {
+    return this.#closeController.signal.aborted;
+  }
+
   /** @type {[T] | []} */
   #current = [];
   /** @type {PromiseWithResolvers<boolean>} */
@@ -18,6 +23,12 @@ export default class State {
   constructor() {
     this.#setIt.next();
     this.#updateIt.next();
+    this.#closeController.signal.addEventListener("abort", () => {
+      this.#current.splice(0);
+      this.#next.resolve(false);
+      this.#setIt.return();
+      this.#updateIt.return();
+    });
   }
 
   /** @returns {Generator<undefined, void, T>} */
@@ -29,8 +40,7 @@ export default class State {
         this.#next = Promise.withResolvers();
       }
     } finally {
-      this.#next.resolve(false);
-      this.update.return();
+      this.#closeController.abort();
     }
   }
 
@@ -42,18 +52,23 @@ export default class State {
         if (this.#current.length) this.set.next(f(this.#current[0]));
       }
     } finally {
-      this.set.return();
+      this.#closeController.abort();
     }
   }
 
-  /** @param {AsyncIterable<T, void, void>} iter */
+  /** @param {AsyncGenerator<T, void, void>} iter */
   async source(iter) {
     try {
+      if (this.closed) {
+        iter.return();
+      } else {
+        this.#closeController.signal.addEventListener("abort", () => iter.return());
+      }
       for await (const value of iter) {
-        if (this.set.next(value).done) break;
+        this.set.next(value);
       }
     } finally {
-      this.set.return();
+      this.#closeController.abort();
     }
   }
 
